@@ -1,15 +1,19 @@
-import { Settings } from "lucide-preact";
+import { Settings, Grid3x3 } from "lucide-preact";
 
 interface StatusBarProps {
   status: string;
   resolution: string;
   onSettingsClick: () => void;
+  showGrid?: boolean;
+  onGridToggle?: () => void;
 }
 
 export function StatusBar({
   status,
   resolution,
   onSettingsClick,
+  showGrid = false,
+  onGridToggle,
 }: StatusBarProps) {
   const getStatusColor = (status: string) => {
     if (status === "Ready") return "bg-green-600/80";
@@ -33,6 +37,14 @@ export function StatusBar({
           </span>
         </div>
         <div className="flex items-center gap-2">
+          {onGridToggle && (
+            <button
+              onClick={onGridToggle}
+              className={`control-button ${showGrid ? "bg-white/40" : ""}`}
+            >
+              <Grid3x3 size={20} />
+            </button>
+          )}
           <button onClick={onSettingsClick} className="control-button">
             <Settings size={24} />
           </button>

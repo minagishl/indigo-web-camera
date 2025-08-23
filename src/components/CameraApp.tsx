@@ -17,6 +17,7 @@ export function CameraApp() {
   const [jpegQuality, setJpegQuality] = useState(0.92);
   const [preferMax, setPreferMax] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [showGrid, setShowGrid] = useState(false);
 
   const camera = useCamera();
   const { canvasRef, takePhoto, burstCapture } = useCapture(
@@ -104,11 +105,30 @@ export function CameraApp() {
       />
       <canvas ref={canvasRef} className="hidden" />
 
+      {/* Camera Grid */}
+      {showGrid && (
+        <div className="camera-grid absolute top-0 left-0 w-full h-full pointer-events-none z-5">
+          <div className="w-full h-full grid grid-cols-3 grid-rows-3">
+            <div className="border-r border-b border-white/30"></div>
+            <div className="border-r border-b border-white/30"></div>
+            <div className="border-b border-white/30"></div>
+            <div className="border-r border-b border-white/30"></div>
+            <div className="border-r border-b border-white/30"></div>
+            <div className="border-b border-white/30"></div>
+            <div className="border-r border-white/30"></div>
+            <div className="border-r border-white/30"></div>
+            <div></div>
+          </div>
+        </div>
+      )}
+
       {/* Status Bar */}
       <StatusBar
         status={camera.state.status}
         resolution={camera.state.resolution}
         onSettingsClick={() => setShowSettings(!showSettings)}
+        showGrid={showGrid}
+        onGridToggle={() => setShowGrid(!showGrid)}
       />
 
       {/* Settings Panel */}

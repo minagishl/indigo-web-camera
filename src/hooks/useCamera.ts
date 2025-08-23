@@ -56,14 +56,15 @@ export const useCamera = () => {
   }, []);
 
   const startCamera = useCallback(
-    async (preferMax: boolean = false) => {
+    async (preferMax: boolean = false, customDeviceId?: string) => {
       try {
         setStatus("Starting...");
 
+        const deviceId = customDeviceId ?? state.deviceId;
         const constraints: MediaStreamConstraints = {
           video: {
-            facingMode: state.deviceId ? undefined : { ideal: state.facing },
-            deviceId: state.deviceId ? { exact: state.deviceId } : undefined,
+            facingMode: deviceId ? undefined : { ideal: state.facing },
+            deviceId: deviceId ? { exact: deviceId } : undefined,
             width: preferMax ? { ideal: 4096, max: 4096 } : { ideal: 1920 },
             height: preferMax ? { ideal: 2160, max: 4096 } : { ideal: 1080 },
             frameRate: { ideal: 30, max: 60 },
@@ -139,7 +140,7 @@ export const useCamera = () => {
     async (deviceId: string) => {
       setState((prev) => ({ ...prev, deviceId }));
       if (state.stream) {
-        await startCamera();
+        await startCamera(false, deviceId);
       }
     },
     [state.stream, startCamera]

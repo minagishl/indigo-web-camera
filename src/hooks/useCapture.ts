@@ -1,5 +1,4 @@
 import { useCallback, useRef } from "preact/hooks";
-import { photoDB, type Photo } from "../utils/indexedDB";
 import { type RefObject } from "preact/compat";
 
 export const useCapture = (
@@ -36,15 +35,25 @@ export const useCapture = (
       type = "image/jpeg",
       quality = 0.92
     ): Promise<Blob> => {
-      return new Promise((resolve) => {
-        canvas.toBlob((blob) => resolve(blob!), type, quality);
+      return new Promise((resolve, reject) => {
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error("Failed to create blob from canvas"));
+            }
+          },
+          type,
+          quality
+        );
       });
     },
     []
   );
 
   const takePhoto = useCallback(
-    async (quality = 0.92): Promise<Photo | null> => {
+    async (quality = 0.92): Promise<Blob | null> => {
       if (!track) return null;
 
       try {
@@ -80,15 +89,7 @@ export const useCapture = (
           blob = await canvasToBlob(canvas, "image/jpeg", quality);
         }
 
-        const label = `photo_${new Date().toISOString().replace(/[:.]/g, "-")}`;
-        const id = await photoDB.savePhoto(blob, label);
-
-        return {
-          id,
-          blob,
-          timestamp: Date.now(),
-          label,
-        };
+        return blob;
       } catch (error) {
         console.error("Failed to take photo:", error);
         throw error;
@@ -98,7 +99,7 @@ export const useCapture = (
   );
 
   const burstCapture = useCallback(
-    async (count: number, quality = 0.92): Promise<Photo | null> => {
+    async (count: number, quality = 0.92): Promise<Blob | null> => {
       if (!track) return null;
 
       try {
@@ -159,17 +160,7 @@ export const useCapture = (
         const blob = await canvasToBlob(outputCanvas, "image/jpeg", quality);
         frames.forEach((bitmap) => bitmap.close && bitmap.close());
 
-        const label = `burst_${count}_${new Date()
-          .toISOString()
-          .replace(/[:.]/g, "-")}`;
-        const id = await photoDB.savePhoto(blob, label);
-
-        return {
-          id,
-          blob,
-          timestamp: Date.now(),
-          label,
-        };
+        return blob;
       } catch (error) {
         console.error("Failed to capture burst:", error);
         throw error;

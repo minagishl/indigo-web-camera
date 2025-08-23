@@ -1,10 +1,15 @@
 import { useState, useCallback } from "preact/hooks";
 import { useCamera } from "../hooks/useCamera";
 import { useCapture } from "../hooks/useCapture";
+import { useAdvancedCapture } from "../hooks/useAdvancedCapture";
 import { usePhotos } from "../hooks/usePhotos";
+import { useCameraMode } from "../hooks/useCameraMode";
+import { useManualControls } from "../hooks/useManualControls";
 import { StatusBar } from "./StatusBar";
 import { SettingsPanel } from "./SettingsPanel";
 import { CameraControls } from "./CameraControls";
+import { CameraModeSelector } from "./CameraModeSelector";
+import { ManualControlsPanel } from "./ManualControlsPanel";
 import { GalleryModal } from "./GalleryModal";
 import { GalleryPreview } from "./GalleryPreview";
 import { LogPanel } from "./LogPanel";
@@ -24,7 +29,13 @@ export function CameraApp() {
     camera.videoRef,
     camera.state.track
   );
+  const advancedCapture = useAdvancedCapture(
+    camera.videoRef,
+    camera.state.track
+  );
   const photos = usePhotos();
+  const cameraMode = useCameraMode();
+  const manualControls = useManualControls(camera.state.track);
 
   const log = useCallback((message: string) => {
     console.log(message);
@@ -37,17 +48,78 @@ export function CameraApp() {
 
     try {
       setIsCapturing(true);
-      const photo = await takePhoto(jpegQuality);
-      if (photo) {
-        photos.addPhoto(photo);
-        log("Photo saved");
+      let photo: Blob | null = null;
+
+      if (cameraMode.captureSettings.mode === "night") {
+        photo = await advancedCapture.captureMultiFrame(
+          cameraMode.captureSettings,
+          jpegQuality
+        );
+        if (photo) {
+          const photoObject = {
+            id: `photo_${Date.now()}_${Math.random()
+              .toString(36)
+              .substr(2, 9)}`,
+            blob: photo,
+            timestamp: Date.now(),
+            label: `Night mode (${cameraMode.captureSettings.frameCount} frames)`,
+          };
+          photos.addPhoto(photoObject);
+          log(
+            `Night mode: ${cameraMode.captureSettings.frameCount} frames captured`
+          );
+        } else {
+          throw new Error("Night mode capture failed");
+        }
+      } else if (cameraMode.captureSettings.mode === "longExposure") {
+        photo = await advancedCapture.captureLongExposure(2, jpegQuality); // 2 second exposure
+        if (photo) {
+          const photoObject = {
+            id: `photo_${Date.now()}_${Math.random()
+              .toString(36)
+              .substr(2, 9)}`,
+            blob: photo,
+            timestamp: Date.now(),
+            label: "Long exposure (2s)",
+          };
+          photos.addPhoto(photoObject);
+          log("Long exposure captured");
+        } else {
+          throw new Error("Long exposure capture failed");
+        }
+      } else {
+        photo = await takePhoto(jpegQuality);
+        if (photo) {
+          const photoObject = {
+            id: `photo_${Date.now()}_${Math.random()
+              .toString(36)
+              .substr(2, 9)}`,
+            blob: photo,
+            timestamp: Date.now(),
+            label: "Photo",
+          };
+          photos.addPhoto(photoObject);
+          log("Photo saved");
+        } else {
+          throw new Error("Photo capture failed");
+        }
       }
-    } catch {
+    } catch (error) {
       log("Failed to take photo");
+      console.error(error);
     } finally {
       setIsCapturing(false);
     }
-  }, [camera.state.track, isCapturing, takePhoto, jpegQuality, photos, log]);
+  }, [
+    camera.state.track,
+    isCapturing,
+    takePhoto,
+    advancedCapture,
+    cameraMode.captureSettings,
+    jpegQuality,
+    photos,
+    log,
+  ]);
 
   const handleBurstCapture = useCallback(async () => {
     if (!camera.state.track || isCapturing) return;
@@ -56,7 +128,13 @@ export function CameraApp() {
       setIsCapturing(true);
       const photo = await burstCapture(burstCount, jpegQuality);
       if (photo) {
-        photos.addPhoto(photo);
+        const photoObject = {
+          id: `photo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          blob: photo,
+          timestamp: Date.now(),
+          label: `Burst (${burstCount} shots)`,
+        };
+        photos.addPhoto(photoObject);
         log("Burst capture complete");
       }
     } catch {
@@ -75,15 +153,22 @@ export function CameraApp() {
   ]);
 
   const handleStartCamera = useCallback(() => {
-    camera.startCamera(preferMax).catch((error) => {
-      log(error.message || "Failed to start camera");
-    });
-  }, [camera, preferMax, log]);
+    camera
+      .startCamera(preferMax)
+      .then(() => {
+        // Start frame buffer for advanced modes
+        advancedCapture.startFrameBuffer();
+      })
+      .catch((error) => {
+        log(error.message || "Failed to start camera");
+      });
+  }, [camera, preferMax, advancedCapture, log]);
 
   const handleStopCamera = useCallback(() => {
     camera.stopCamera();
+    advancedCapture.stopFrameBuffer();
     log("Camera stopped");
-  }, [camera, log]);
+  }, [camera, advancedCapture, log]);
 
   const handleSwitchCamera = useCallback(() => {
     camera.switchFacing().catch((error) => {
@@ -104,6 +189,7 @@ export function CameraApp() {
         muted
       />
       <canvas ref={canvasRef} className="hidden" />
+      <canvas ref={advancedCapture.canvasRef} className="hidden" />
 
       {/* Camera Grid */}
       {showGrid && (
@@ -158,12 +244,33 @@ export function CameraApp() {
         />
       )}
 
+      {/* Camera Mode Selector */}
+      <CameraModeSelector
+        currentMode={cameraMode.captureSettings.mode}
+        onModeChange={cameraMode.setMode}
+      />
+
+      {/* Manual Controls Panel */}
+      <ManualControlsPanel
+        controls={manualControls.controls}
+        isManualMode={manualControls.isManualMode}
+        controlRanges={manualControls.getControlRanges()}
+        onISO={manualControls.setISO}
+        onShutterSpeed={manualControls.setShutterSpeed}
+        onFocus={manualControls.setFocus}
+        onExposureCompensation={manualControls.setExposureCompensation}
+        onWhiteBalance={manualControls.setWhiteBalance}
+        onResetToAuto={manualControls.resetToAuto}
+        onToggleManual={manualControls.setIsManualMode}
+      />
+
       {/* Camera Controls */}
       <CameraControls
         onTakePhoto={handleTakePhoto}
         onBurstCapture={handleBurstCapture}
         onOpenGallery={() => setShowGallery(true)}
         isCapturing={isCapturing}
+        currentMode={cameraMode.captureSettings.mode}
       />
 
       {/* Gallery Modal */}

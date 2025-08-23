@@ -1,10 +1,12 @@
 import { Images, Zap } from "lucide-preact";
+import type { CameraMode } from "../types/camera";
 
 interface CameraControlsProps {
   onTakePhoto: () => void;
   onBurstCapture: () => void;
   onOpenGallery: () => void;
   isCapturing: boolean;
+  currentMode: CameraMode;
 }
 
 export function CameraControls({
@@ -12,6 +14,7 @@ export function CameraControls({
   onBurstCapture,
   onOpenGallery,
   isCapturing,
+  currentMode,
 }: CameraControlsProps) {
   return (
     <div className="camera-controls">
@@ -30,14 +33,25 @@ export function CameraControls({
           <div className="w-16 h-16 rounded-full bg-black"></div>
         </button>
 
-        {/* Burst Button */}
-        <button
-          onClick={onBurstCapture}
-          disabled={isCapturing}
-          className="control-button disabled:opacity-50"
-        >
-          <Zap size={24} />
-        </button>
+        {/* Mode-specific Button */}
+        {currentMode === "night" && (
+          <button
+            onClick={onBurstCapture}
+            disabled={isCapturing}
+            className="control-button disabled:opacity-50"
+          >
+            <Zap size={24} />
+          </button>
+        )}
+        {currentMode === "photo" && (
+          <button
+            onClick={onBurstCapture}
+            disabled={isCapturing}
+            className="control-button disabled:opacity-50"
+          >
+            <Zap size={24} />
+          </button>
+        )}
       </div>
     </div>
   );

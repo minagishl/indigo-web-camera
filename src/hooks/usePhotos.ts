@@ -40,7 +40,16 @@ export const usePhotos = () => {
   }, [photos]);
 
   const createObjectURL = useCallback((blob: Blob): string => {
-    return URL.createObjectURL(blob);
+    if (!blob || !(blob instanceof Blob)) {
+      console.error("Invalid blob passed to createObjectURL:", blob);
+      throw new Error("Invalid blob object");
+    }
+    try {
+      return URL.createObjectURL(blob);
+    } catch (error) {
+      console.error("Failed to create object URL:", error);
+      throw error;
+    }
   }, []);
 
   const revokeObjectURL = useCallback((url: string) => {

@@ -15,12 +15,22 @@ export function GalleryPreview({
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const url = createObjectURL(photo.blob);
-    setImageUrl(url);
+    if (!photo || !photo.blob) {
+      console.error("Invalid photo or blob:", photo);
+      return;
+    }
 
-    return () => {
-      URL.revokeObjectURL(url);
-    };
+    try {
+      const url = createObjectURL(photo.blob);
+      setImageUrl(url);
+
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    } catch (error) {
+      console.error("Failed to create preview URL:", error);
+      setImageUrl(null);
+    }
   }, [photo, createObjectURL]);
 
   if (!imageUrl) return null;

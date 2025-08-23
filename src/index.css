@@ -55,3 +55,32 @@ html {
 .gallery-preview {
   @apply absolute top-4 left-4 w-16 h-16 rounded-lg border-2 border-white overflow-hidden z-10 cursor-pointer;
 }
+
+.camera-mode-selector {
+  @apply flex items-center justify-center;
+}
+
+.manual-controls-panel {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.manual-controls-panel .control-group {
+  @apply mb-4 last:mb-0;
+}
+
+.manual-controls-panel input[type="range"] {
+  @apply w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer;
+}
+
+.manual-controls-panel input[type="range"]::-webkit-slider-thumb {
+  @apply appearance-none w-4 h-4 bg-white rounded-full cursor-pointer;
+}
+
+.manual-controls-panel input[type="range"]::-moz-range-thumb {
+  @apply w-4 h-4 bg-white rounded-full cursor-pointer border-0;
+}
+
+.manual-controls-toggle {
+  @apply flex items-center justify-center;
+}

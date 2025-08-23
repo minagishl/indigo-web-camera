@@ -33,10 +33,7 @@ export function StatusBar({
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={onSettingsClick}
-            className="control-button flex items-center justify-center"
-          >
+          <button onClick={onSettingsClick} className="control-button">
             <Settings size={24} />
           </button>
         </div>

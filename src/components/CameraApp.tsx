@@ -93,7 +93,7 @@ export function CameraApp() {
   const latestPhoto = photos.getLatestPhoto();
 
   return (
-    <div className="camera-viewport bg-black text-white overflow-hidden">
+    <div className="camera-viewport text-white">
       {/* Video Preview */}
       <video
         ref={camera.videoRef}

@@ -26,7 +26,7 @@ export function GalleryPreview({
   if (!imageUrl) return null;
 
   return (
-    <div className="gallery-preview cursor-pointer" onClick={onClick}>
+    <div className="gallery-preview" onClick={onClick}>
       <img
         src={imageUrl}
         alt="Last photo"

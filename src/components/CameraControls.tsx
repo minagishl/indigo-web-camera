@@ -17,10 +17,7 @@ export function CameraControls({
     <div className="camera-controls">
       <div className="flex items-center justify-center gap-8">
         {/* Gallery Button */}
-        <button
-          onClick={onOpenGallery}
-          className="control-button flex items-center justify-center"
-        >
+        <button onClick={onOpenGallery} className="control-button">
           <Images size={24} />
         </button>
 
@@ -28,7 +25,7 @@ export function CameraControls({
         <button
           onClick={onTakePhoto}
           disabled={isCapturing}
-          className="capture-button flex items-center justify-center disabled:opacity-50"
+          className="capture-button disabled:opacity-50"
         >
           <div className="w-16 h-16 rounded-full bg-black"></div>
         </button>
@@ -37,7 +34,7 @@ export function CameraControls({
         <button
           onClick={onBurstCapture}
           disabled={isCapturing}
-          className="control-button flex items-center justify-center disabled:opacity-50"
+          className="control-button disabled:opacity-50"
         >
           <Zap size={24} />
         </button>

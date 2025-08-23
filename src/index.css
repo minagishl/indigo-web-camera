@@ -13,6 +13,7 @@ video {
 
 /* Remove smooth transitions for choppy UI */
 * {
+  @apply !overscroll-none;
   transition: none !important;
   animation: none !important;
 }

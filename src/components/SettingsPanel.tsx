@@ -1,3 +1,5 @@
+import { X } from "lucide-preact";
+
 interface SettingsPanelProps {
   devices: MediaDeviceInfo[];
   burstCount: number;
@@ -33,7 +35,7 @@ export function SettingsPanel({
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Settings</h3>
           <button onClick={onClose} className="control-button">
-            ✕
+            <X size={20} />
           </button>
         </div>
 

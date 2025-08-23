@@ -11,6 +11,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.8
         version: 4.1.8(vite@6.3.5(jiti@2.4.2)(lightningcss@1.30.1))
+      lucide-preact:
+        specifier: ^0.541.0
+        version: 0.541.0(preact@10.26.8)
       preact:
         specifier: ^10.26.5
         version: 10.26.8
@@ -708,6 +711,11 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
+
+  lucide-preact@0.541.0:
+    resolution: {integrity: sha512-TGuvu6apcVX6JrARdo92cu+VGNCx8DeSIu2SjHpSp2JboqTZbuBvMY8LfElFItU4MRV/oc/wGDeK0vQoIReBQg==}
+    peerDependencies:
+      preact: ^10.5.13
 
   magic-string@0.30.17:
     resolution: {integrity: sha512-sNPKHvyjVf7gyjwS4xGTaW/mCnF8wnjtifKBEhxfZ7E/S8tQ0rssrwGNn6q8JH/ohItJfSQp9mBtQYuTlH5QnA==}
@@ -1433,6 +1441,10 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  lucide-preact@0.541.0(preact@10.26.8):
+    dependencies:
+      preact: 10.26.8
 
   magic-string@0.30.17:
     dependencies:

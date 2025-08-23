@@ -1,4 +1,5 @@
 import { useState, useEffect } from "preact/hooks";
+import { X, Download, Trash2 } from "lucide-preact";
 import type { Photo } from "../utils/indexedDB";
 
 interface GalleryModalProps {
@@ -49,7 +50,7 @@ export function GalleryModal({
       <div className="flex items-center justify-between p-4 border-b border-white/20">
         <h2 className="text-xl font-semibold">Gallery</h2>
         <button onClick={onClose} className="control-button">
-          ✕
+          <X size={20} />
         </button>
       </div>
 
@@ -81,15 +82,17 @@ export function GalleryModal({
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleDownload(photo)}
-                        className="text-blue-400 hover:text-blue-300"
+                        className="text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                        title="Download"
                       >
-                        Download
+                        <Download size={16} />
                       </button>
                       <button
                         onClick={() => onDelete(photo.id)}
-                        className="text-red-400 hover:text-red-300"
+                        className="text-red-400 hover:text-red-300 flex items-center gap-1"
+                        title="Delete"
                       >
-                        Delete
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </div>

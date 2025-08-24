@@ -1,14 +1,9 @@
 import { useCallback, useRef } from "preact/hooks";
 import { type RefObject } from "preact/compat";
-import {
-  createOrientedImageBlob,
-  calculateImageOrientation,
-} from "../utils/imageOrientation";
 
 export const useCapture = (
   videoRef: RefObject<HTMLVideoElement>,
-  track: MediaStreamTrack | null,
-  deviceOrientation: number = 0
+  track: MediaStreamTrack | null
 ) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -115,28 +110,13 @@ export const useCapture = (
           blob = await canvasToBlob(canvas, "image/jpeg", quality);
         }
 
-        // Adjust image orientation based on device orientation
-        if (blob && deviceOrientation !== 0) {
-          const video = videoRef.current;
-          if (video) {
-            const orientationInfo =
-              calculateImageOrientation(deviceOrientation);
-            const orientedBlob = await createOrientedImageBlob(
-              video,
-              orientationInfo,
-              quality
-            );
-            blob = orientedBlob;
-          }
-        }
-
         return blob;
       } catch (error) {
         console.error("Failed to take photo:", error);
         throw error;
       }
     },
-    [track, videoToCanvas, canvasToBlob, deviceOrientation, videoRef]
+    [track, videoToCanvas, canvasToBlob, videoRef]
   );
 
   const burstCapture = useCallback(
@@ -221,28 +201,13 @@ export const useCapture = (
         let blob = await canvasToBlob(outputCanvas, "image/jpeg", quality);
         frames.forEach((bitmap) => bitmap.close && bitmap.close());
 
-        // Adjust image orientation based on device orientation
-        if (blob && deviceOrientation !== 0) {
-          const video = videoRef.current;
-          if (video) {
-            const orientationInfo =
-              calculateImageOrientation(deviceOrientation);
-            const orientedBlob = await createOrientedImageBlob(
-              video,
-              orientationInfo,
-              quality
-            );
-            blob = orientedBlob;
-          }
-        }
-
         return blob;
       } catch (error) {
         console.error("Failed to capture burst:", error);
         throw error;
       }
     },
-    [track, videoRef, videoToCanvas, canvasToBlob, deviceOrientation]
+    [track, videoRef, videoToCanvas, canvasToBlob]
   );
 
   return {

@@ -6,7 +6,6 @@ import { useCapture } from "../hooks/useCapture";
 import { useAdvancedCapture } from "../hooks/useAdvancedCapture";
 import { usePhotos } from "../hooks/usePhotos";
 import { useManualControls } from "../hooks/useManualControls";
-import { useDeviceOrientation } from "../hooks/useDeviceOrientation";
 import { CameraControls } from "./CameraControls";
 import { CameraModeSelector } from "./CameraModeSelector";
 
@@ -26,16 +25,13 @@ export function CameraApp() {
   const [activeTab, setActiveTab] = useState("settings");
 
   const camera = useCamera();
-  const deviceOrientation = useDeviceOrientation();
   const { canvasRef, takePhoto, burstCapture } = useCapture(
     camera.videoRef,
-    camera.state.track,
-    deviceOrientation.getPhotoOrientation()
+    camera.state.track
   );
   const advancedCapture = useAdvancedCapture(
     camera.videoRef,
-    camera.state.track,
-    deviceOrientation.getPhotoOrientation()
+    camera.state.track
   );
   const photos = usePhotos();
   const cameraMode = useCameraMode();
@@ -182,16 +178,6 @@ export function CameraApp() {
       <video
         ref={camera.videoRef}
         className="w-full h-full object-cover"
-        style={{
-          transform:
-            deviceOrientation.getPhotoOrientation() === 90
-              ? "rotate(90deg) scale(1.78)"
-              : deviceOrientation.getPhotoOrientation() === 270
-              ? "rotate(-90deg) scale(1.78)"
-              : deviceOrientation.getPhotoOrientation() === 180
-              ? "rotate(180deg)"
-              : "none",
-        }}
         playsInline
         autoPlay
         muted

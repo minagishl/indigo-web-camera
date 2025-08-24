@@ -85,7 +85,8 @@ export function CameraApp() {
       if (cameraMode.captureSettings.mode === "night") {
         photo = await advancedCapture.captureMultiFrame(
           cameraMode.captureSettings,
-          settings.jpegQuality
+          settings.jpegQuality,
+          settings.imageOrientation
         );
         if (photo) {
           const photoObject = {
@@ -94,7 +95,7 @@ export function CameraApp() {
               .substring(2, 11)}`,
             blob: photo,
             timestamp: Date.now(),
-            label: `Night mode (${cameraMode.captureSettings.frameCount} frames)`,
+            label: `Night mode (${cameraMode.captureSettings.frameCount} frames, ${settings.imageOrientation}°)`,
           };
           photos.addPhoto(photoObject);
           log(
@@ -106,7 +107,8 @@ export function CameraApp() {
       } else if (cameraMode.captureSettings.mode === "longExposure") {
         photo = await advancedCapture.captureLongExposure(
           2,
-          settings.jpegQuality
+          settings.jpegQuality,
+          settings.imageOrientation
         ); // 2 second exposure
         if (photo) {
           const photoObject = {
@@ -115,7 +117,7 @@ export function CameraApp() {
               .substring(2, 11)}`,
             blob: photo,
             timestamp: Date.now(),
-            label: "Long exposure (2s)",
+            label: `Long exposure (2s, ${settings.imageOrientation}°)`,
           };
           photos.addPhoto(photoObject);
           log("Long exposure captured");

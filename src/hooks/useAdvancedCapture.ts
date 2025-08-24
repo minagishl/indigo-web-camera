@@ -59,11 +59,53 @@ export const useAdvancedCapture = (
     frameBufferRef.current = [];
   }, []);
 
+  // Helper function to apply orientation to canvas
+  const applyOrientation = useCallback(
+    (
+      source: HTMLCanvasElement | HTMLImageElement,
+      orientation: number
+    ): HTMLCanvasElement => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d")!;
+
+      let width = source.width;
+      let height = source.height;
+
+      // Adjust canvas size based on orientation
+      if (orientation === 90 || orientation === 270) {
+        canvas.width = height;
+        canvas.height = width;
+      } else {
+        canvas.width = width;
+        canvas.height = height;
+      }
+
+      ctx.save();
+
+      // Move to center of canvas
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+
+      // Apply rotation so that the arrow direction becomes the top of the image
+      // For 90°: rotate counter-clockwise to make right side become top
+      // For 270°: rotate clockwise to make left side become top
+      ctx.rotate((-orientation * Math.PI) / 180);
+
+      // Draw the image centered
+      ctx.drawImage(source, -width / 2, -height / 2, width, height);
+
+      ctx.restore();
+
+      return canvas;
+    },
+    []
+  );
+
   // Multi-frame capture and processing
   const captureMultiFrame = useCallback(
     async (
       settings: CaptureSettings,
-      jpegQuality: number = 0.92
+      jpegQuality: number = 0.92,
+      imageOrientation: number = 0
     ): Promise<Blob | null> => {
       if (!videoRef.current || !canvasRef.current || !track) {
         throw new Error("Camera not ready");
@@ -102,9 +144,15 @@ export const useAdvancedCapture = (
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       }
 
+      // Apply orientation if needed
+      let finalCanvas = canvas;
+      if (imageOrientation !== 0) {
+        finalCanvas = applyOrientation(canvas, imageOrientation);
+      }
+
       // Convert to blob
       return new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob(
+        finalCanvas.toBlob(
           (blob) => {
             if (blob) {
               resolve(blob);
@@ -117,7 +165,7 @@ export const useAdvancedCapture = (
         );
       });
     },
-    [videoRef, track]
+    [videoRef, track, applyOrientation]
   );
 
   // Frame merging algorithm for noise reduction
@@ -163,7 +211,8 @@ export const useAdvancedCapture = (
   const captureLongExposure = useCallback(
     async (
       exposureTime: number,
-      jpegQuality: number = 0.92
+      jpegQuality: number = 0.92,
+      imageOrientation: number = 0
     ): Promise<Blob | null> => {
       if (!videoRef.current || !canvasRef.current || !track) {
         throw new Error("Camera not ready");
@@ -196,8 +245,14 @@ export const useAdvancedCapture = (
       // Merge frames with motion blur
       await mergeFramesWithMotionBlur(ctx, frames, canvas.width, canvas.height);
 
+      // Apply orientation if needed
+      let finalCanvas = canvas;
+      if (imageOrientation !== 0) {
+        finalCanvas = applyOrientation(canvas, imageOrientation);
+      }
+
       return new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob(
+        finalCanvas.toBlob(
           (blob) => {
             if (blob) {
               resolve(blob);
@@ -210,7 +265,7 @@ export const useAdvancedCapture = (
         );
       });
     },
-    [videoRef, track]
+    [videoRef, track, applyOrientation]
   );
 
   const mergeFramesWithMotionBlur = useCallback(

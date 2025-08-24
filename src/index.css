@@ -24,7 +24,7 @@ html {
 
 /* Tailwind CSS component classes using @apply */
 .camera-viewport {
-  @apply relative w-screen h-screen bg-black overflow-hidden;
+  @apply relative w-dvw h-dvh bg-black overflow-hidden;
 }
 
 .camera-controls {

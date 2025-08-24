@@ -96,12 +96,13 @@ export function useDeviceOrientation() {
     // Estimate from device orientation data
     if (deviceOrientation.beta !== null && deviceOrientation.gamma !== null) {
       const beta = Math.abs(deviceOrientation.beta);
-      const gamma = Math.abs(deviceOrientation.gamma);
 
       // Determine if device is portrait or landscape
       if (beta > 45) {
         // Device is portrait
-        return deviceOrientation.gamma > 0 ? 90 : 270;
+        return deviceOrientation.gamma && deviceOrientation.gamma > 0
+          ? 90
+          : 270;
       } else {
         // Device is landscape
         return deviceOrientation.beta > 0 ? 0 : 180;

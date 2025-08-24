@@ -100,11 +100,12 @@ export const useCapture = (
           if (video) {
             const orientationInfo =
               calculateImageOrientation(deviceOrientation);
-            blob = await createOrientedImageBlob(
+            const orientedBlob = await createOrientedImageBlob(
               video,
               orientationInfo,
               quality
             );
+            blob = orientedBlob;
           }
         }
 
@@ -176,7 +177,7 @@ export const useCapture = (
 
         ctx.globalAlpha = 1;
 
-        const blob = await canvasToBlob(outputCanvas, "image/jpeg", quality);
+        let blob = await canvasToBlob(outputCanvas, "image/jpeg", quality);
         frames.forEach((bitmap) => bitmap.close && bitmap.close());
 
         // Adjust image orientation based on device orientation
@@ -185,11 +186,12 @@ export const useCapture = (
           if (video) {
             const orientationInfo =
               calculateImageOrientation(deviceOrientation);
-            blob = await createOrientedImageBlob(
+            const orientedBlob = await createOrientedImageBlob(
               video,
               orientationInfo,
               quality
             );
+            blob = orientedBlob;
           }
         }
 

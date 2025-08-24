@@ -1,12 +1,26 @@
 import { Settings, Grid3x3 } from "lucide-preact";
+import { tv } from "tailwind-variants";
 
 interface StatusBarProps {
-  status: string;
+  status: "Idle" | "Starting" | "Ready" | "Failed" | "Stopped";
   resolution: string;
   onSettingsClick: () => void;
   showGrid?: boolean;
   onGridToggle?: () => void;
 }
+
+const statusCircle = tv({
+  base: "w-2 h-2 rounded-full",
+  variants: {
+    status: {
+      Ready: "bg-green-600/80",
+      Failed: "bg-red-600/80",
+      Idle: "bg-gray-600/80",
+      Starting: "bg-yellow-600/80",
+      Stopped: "bg-gray-600/80",
+    },
+  },
+});
 
 export function StatusBar({
   status,
@@ -19,7 +33,8 @@ export function StatusBar({
     <div className="status-bar">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="px-2 py-1 rounded text-xs bg-black/50 backdrop-blur">
+          <span className="flex items-center gap-2 px-2 py-1 rounded text-xs bg-black/50 backdrop-blur">
+            <div className={statusCircle({ status })} />
             {status}
           </span>
           <span className="px-2 py-1 rounded text-xs bg-black/50 backdrop-blur">

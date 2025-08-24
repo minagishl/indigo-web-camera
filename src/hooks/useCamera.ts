@@ -5,7 +5,7 @@ interface CameraState {
   track: MediaStreamTrack | null;
   facing: "environment" | "user";
   deviceId: string | null;
-  status: string;
+  status: "Idle" | "Starting" | "Ready" | "Failed" | "Stopped";
   resolution: string;
   devices: MediaDeviceInfo[];
 }
@@ -23,9 +23,12 @@ export const useCamera = () => {
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const setStatus = useCallback((status: string) => {
-    setState((prev) => ({ ...prev, status }));
-  }, []);
+  const setStatus = useCallback(
+    (status: "Idle" | "Starting" | "Ready" | "Failed" | "Stopped") => {
+      setState((prev) => ({ ...prev, status }));
+    },
+    []
+  );
 
   const cleanupStream = useCallback(() => {
     if (state.stream) {
@@ -58,7 +61,7 @@ export const useCamera = () => {
   const startCamera = useCallback(
     async (preferMax: boolean = false, customDeviceId?: string) => {
       try {
-        setStatus("Starting...");
+        setStatus("Starting");
 
         const deviceId = customDeviceId ?? state.deviceId;
         const constraints: MediaStreamConstraints = {

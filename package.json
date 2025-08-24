@@ -17,6 +17,7 @@
     "@tailwindcss/vite": "^4.1.8",
     "lucide-preact": "^0.541.0",
     "preact": "^10.26.5",
+    "tailwind-variants": "^2.1.0",
     "tailwindcss": "^4.1.8"
   },
   "devDependencies": {

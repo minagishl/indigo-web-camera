@@ -1,4 +1,4 @@
-import { useState, useCallback } from "preact/hooks";
+import { useState, useCallback, useEffect } from "preact/hooks";
 import { RefreshCw, X } from "lucide-preact";
 import { useCamera } from "../hooks/useCamera";
 import { useCameraMode } from "../hooks/useCameraMode";
@@ -6,6 +6,7 @@ import { useCapture } from "../hooks/useCapture";
 import { useAdvancedCapture } from "../hooks/useAdvancedCapture";
 import { usePhotos } from "../hooks/usePhotos";
 import { useManualControls } from "../hooks/useManualControls";
+import { useSettings } from "../hooks/useSettings";
 import { CameraControls } from "./CameraControls";
 import { CameraModeSelector } from "./CameraModeSelector";
 
@@ -17,12 +18,18 @@ export function CameraApp() {
   const [showSettings, setShowSettings] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [logMessage, setLogMessage] = useState<string | null>(null);
-  const [burstCount, setBurstCount] = useState(8);
-  const [jpegQuality, setJpegQuality] = useState(0.92);
-  const [preferMax, setPreferMax] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
-  const [showGrid, setShowGrid] = useState(false);
-  const [activeTab, setActiveTab] = useState("settings");
+
+  const {
+    settings,
+    isLoaded,
+    setBurstCount,
+    setJpegQuality,
+    setPreferMax,
+    setShowGrid,
+    setActiveTab,
+    setCameraMode,
+  } = useSettings();
 
   const camera = useCamera();
   const { canvasRef, takePhoto, burstCapture } = useCapture(
@@ -37,11 +44,27 @@ export function CameraApp() {
   const cameraMode = useCameraMode();
   const manualControls = useManualControls(camera.state.track);
 
+  // Initialize camera mode from settings when loaded
+  useEffect(() => {
+    if (isLoaded) {
+      cameraMode.setMode(settings.cameraMode);
+    }
+  }, [isLoaded, settings.cameraMode, cameraMode]);
+
   const log = useCallback((message: string) => {
     console.log(message);
     setLogMessage(message);
     setTimeout(() => setLogMessage(null), 3000);
   }, []);
+
+  // Don't render until settings are loaded
+  if (!isLoaded) {
+    return (
+      <div className="camera-viewport text-white flex items-center justify-center">
+        <div className="text-white/70">Loading settings...</div>
+      </div>
+    );
+  }
 
   const handleTakePhoto = useCallback(async () => {
     if (!camera.state.track || isCapturing) return;
@@ -53,7 +76,7 @@ export function CameraApp() {
       if (cameraMode.captureSettings.mode === "night") {
         photo = await advancedCapture.captureMultiFrame(
           cameraMode.captureSettings,
-          jpegQuality
+          settings.jpegQuality
         );
         if (photo) {
           const photoObject = {
@@ -72,7 +95,10 @@ export function CameraApp() {
           throw new Error("Night mode capture failed");
         }
       } else if (cameraMode.captureSettings.mode === "longExposure") {
-        photo = await advancedCapture.captureLongExposure(2, jpegQuality); // 2 second exposure
+        photo = await advancedCapture.captureLongExposure(
+          2,
+          settings.jpegQuality
+        ); // 2 second exposure
         if (photo) {
           const photoObject = {
             id: `photo_${Date.now()}_${Math.random()
@@ -88,7 +114,7 @@ export function CameraApp() {
           throw new Error("Long exposure capture failed");
         }
       } else {
-        photo = await takePhoto(jpegQuality);
+        photo = await takePhoto(settings.jpegQuality);
         if (photo) {
           const photoObject = {
             id: `photo_${Date.now()}_${Math.random()
@@ -116,7 +142,7 @@ export function CameraApp() {
     takePhoto,
     advancedCapture,
     cameraMode.captureSettings,
-    jpegQuality,
+    settings.jpegQuality,
     photos,
     log,
   ]);
@@ -126,7 +152,10 @@ export function CameraApp() {
 
     try {
       setIsCapturing(true);
-      const photo = await burstCapture(burstCount, jpegQuality);
+      const photo = await burstCapture(
+        settings.burstCount,
+        settings.jpegQuality
+      );
       if (photo) {
         const photoObject = {
           id: `photo_${Date.now()}_${Math.random()
@@ -134,7 +163,7 @@ export function CameraApp() {
             .substring(2, 11)}`,
           blob: photo,
           timestamp: Date.now(),
-          label: `Burst (${burstCount} shots)`,
+          label: `Burst (${settings.burstCount} shots)`,
         };
         photos.addPhoto(photoObject);
         log("Burst capture complete");
@@ -148,15 +177,15 @@ export function CameraApp() {
     camera.state.track,
     isCapturing,
     burstCapture,
-    burstCount,
-    jpegQuality,
+    settings.burstCount,
+    settings.jpegQuality,
     photos,
     log,
   ]);
 
   const handleStartCamera = useCallback(() => {
     camera
-      .startCamera(preferMax)
+      .startCamera(settings.preferMax)
       .then(() => {
         // Start frame buffer for advanced modes
         advancedCapture.startFrameBuffer();
@@ -164,7 +193,7 @@ export function CameraApp() {
       .catch((error) => {
         log(error.message || "Failed to start camera");
       });
-  }, [camera, advancedCapture, log, preferMax]);
+  }, [camera, advancedCapture, log, settings.preferMax]);
 
   const handleStopCamera = useCallback(() => {
     camera.stopCamera();
@@ -186,7 +215,7 @@ export function CameraApp() {
       <canvas ref={advancedCapture.canvasRef} className="hidden" />
 
       {/* Camera Grid */}
-      {showGrid && (
+      {settings.showGrid && (
         <div className="camera-grid absolute top-0 left-0 w-full h-full pointer-events-none z-5">
           <div className="w-full h-full grid grid-cols-3 grid-rows-3">
             <div className="border-r-2 border-b-2 border-white/30"></div>
@@ -239,7 +268,7 @@ export function CameraApp() {
               <button
                 onClick={() => setActiveTab("settings")}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === "settings"
+                  settings.activeTab === "settings"
                     ? "text-white border-b-2 border-white"
                     : "text-white/70 hover:text-white"
                 }`}
@@ -249,7 +278,7 @@ export function CameraApp() {
               <button
                 onClick={() => setActiveTab("manual")}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === "manual"
+                  settings.activeTab === "manual"
                     ? "text-white border-b-2 border-white"
                     : "text-white/70 hover:text-white"
                 }`}
@@ -259,7 +288,7 @@ export function CameraApp() {
             </div>
 
             {/* Settings Tab */}
-            {activeTab === "settings" && (
+            {settings.activeTab === "settings" && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -270,7 +299,7 @@ export function CameraApp() {
                       type="number"
                       min="2"
                       max="20"
-                      value={burstCount}
+                      value={settings.burstCount}
                       onChange={(e) =>
                         setBurstCount(Number(e.currentTarget.value))
                       }
@@ -286,14 +315,14 @@ export function CameraApp() {
                       min="0.1"
                       max="1"
                       step="0.01"
-                      value={jpegQuality}
+                      value={settings.jpegQuality}
                       onChange={(e) =>
                         setJpegQuality(Number(e.currentTarget.value))
                       }
                       className="w-full"
                     />
                     <span className="text-sm text-white/70">
-                      {Math.round(jpegQuality * 100)}%
+                      {Math.round(settings.jpegQuality * 100)}%
                     </span>
                   </div>
                 </div>
@@ -301,7 +330,7 @@ export function CameraApp() {
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    checked={preferMax}
+                    checked={settings.preferMax}
                     onChange={(e) => setPreferMax(e.currentTarget.checked)}
                     className="rounded"
                   />
@@ -328,7 +357,7 @@ export function CameraApp() {
             )}
 
             {/* Manual Controls Tab */}
-            {activeTab === "manual" && (
+            {settings.activeTab === "manual" && (
               <div className="space-y-6">
                 {manualControls.isManualMode ? (
                   <>
@@ -418,12 +447,15 @@ export function CameraApp() {
       {/* Camera Mode Selector */}
       <CameraModeSelector
         currentMode={cameraMode.captureSettings.mode}
-        onModeChange={cameraMode.setMode}
+        onModeChange={(mode) => {
+          cameraMode.setMode(mode);
+          setCameraMode(mode);
+        }}
         onBurstCapture={handleBurstCapture}
         isCapturing={isCapturing}
         onOpenSettings={() => setShowSettings(true)}
-        showGrid={showGrid}
-        onGridToggle={() => setShowGrid(!showGrid)}
+        showGrid={settings.showGrid}
+        onGridToggle={() => setShowGrid(!settings.showGrid)}
         onOpenGallery={() => setShowGallery(true)}
       />
 

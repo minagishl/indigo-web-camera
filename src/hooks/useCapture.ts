@@ -23,27 +23,8 @@ export const useCapture = (
 
       const ctx = canvasRef.current.getContext("2d")!;
 
-      // Calculate aspect ratios
-      const videoAspect = vw / vh;
-      const canvasAspect = cw / ch;
-
-      let sx = 0,
-        sy = 0,
-        sw = vw,
-        sh = vh;
-
-      if (videoAspect > canvasAspect) {
-        // Video is wider than canvas - crop width
-        sw = vh * canvasAspect;
-        sx = (vw - sw) / 2;
-      } else if (videoAspect < canvasAspect) {
-        // Video is taller than canvas - crop height
-        sh = vw / canvasAspect;
-        sy = (vh - sh) / 2;
-      }
-
-      // Draw cropped video to canvas
-      ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
+      // Simple high-quality drawing - restore original quality from c569b3c
+      ctx.drawImage(video, 0, 0, cw, ch);
 
       return canvasRef.current;
     },
@@ -135,6 +116,10 @@ export const useCapture = (
                 opts = {
                   imageWidth: caps.imageWidth.max,
                   imageHeight: caps.imageHeight.max,
+                  // HDR settings to restore brightness and quality
+                  fillLightMode: "auto", // Enable automatic HDR
+                  redEyeReduction: true,
+                  imageQuality: 1.0, // Maximum quality
                 };
               }
             }
@@ -238,26 +223,8 @@ export const useCapture = (
         frames.forEach((bitmap) => {
           ctx.globalAlpha = alpha;
 
-          // Apply proper aspect ratio cropping for each frame
-          const bitmapAspect = bitmap.width / bitmap.height;
-          const canvasAspect = w / h;
-
-          let sx = 0,
-            sy = 0,
-            sw = bitmap.width,
-            sh = bitmap.height;
-
-          if (bitmapAspect > canvasAspect) {
-            // Bitmap is wider than canvas - crop width
-            sw = bitmap.height * canvasAspect;
-            sx = (bitmap.width - sw) / 2;
-          } else if (bitmapAspect < canvasAspect) {
-            // Bitmap is taller than canvas - crop height
-            sh = bitmap.width / canvasAspect;
-            sy = (bitmap.height - sh) / 2;
-          }
-
-          ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, w, h);
+          // Simple high-quality drawing - restore original quality from c569b3c
+          ctx.drawImage(bitmap, 0, 0, w, h);
         });
 
         ctx.globalAlpha = 1;

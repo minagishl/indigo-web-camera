@@ -81,3 +81,20 @@ html {
 .manual-controls-toggle {
   @apply flex items-center justify-center;
 }
+
+/* Camera mode selector sliding animation - exception to global no-animation rule */
+.mode-slider-bg {
+  transition: left 0.4s cubic-bezier(0.25, 0.1, 0.25, 1) !important;
+}
+
+/* Camera mode selector container centering animation - exception to global no-animation rule */
+.camera-mode-selector {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Zap button smooth show/hide animation - exception to global no-animation rule */
+.zap-button-container {
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.6, 1),
+              transform 0.25s cubic-bezier(0.4, 0, 0.6, 1) !important;
+}
+

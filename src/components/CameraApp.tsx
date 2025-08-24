@@ -248,6 +248,8 @@ export function CameraApp() {
       <CameraModeSelector
         currentMode={cameraMode.captureSettings.mode}
         onModeChange={cameraMode.setMode}
+        onBurstCapture={handleBurstCapture}
+        isCapturing={isCapturing}
       />
 
       {/* Manual Controls Panel */}
@@ -267,10 +269,8 @@ export function CameraApp() {
       {/* Camera Controls */}
       <CameraControls
         onTakePhoto={handleTakePhoto}
-        onBurstCapture={handleBurstCapture}
         onOpenGallery={() => setShowGallery(true)}
         isCapturing={isCapturing}
-        currentMode={cameraMode.captureSettings.mode}
       />
 
       {/* Gallery Modal */}

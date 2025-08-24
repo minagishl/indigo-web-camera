@@ -197,7 +197,7 @@ export function CameraModeSelector({
               className={`zap-button-container ${
                 showZapButton
                   ? "opacity-100 scale-100 w-10 ml-0"
-                  : "opacity-0 scale-95 w-0 ml-0"
+                  : "opacity-0 scale-95 w-0 ml-0 pointer-events-none"
               }`}
             >
               <button
@@ -213,7 +213,9 @@ export function CameraModeSelector({
             {onOpenSettings && (
               <button
                 onClick={onOpenSettings}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white"
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white ${
+                  !showZapButton ? "relative z-10" : ""
+                }`}
                 title="Manual Controls"
               >
                 <Settings size={18} />

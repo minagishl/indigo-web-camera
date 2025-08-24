@@ -195,14 +195,14 @@ export function CameraApp() {
       {showGrid && (
         <div className="camera-grid absolute top-0 left-0 w-full h-full pointer-events-none z-5">
           <div className="w-full h-full grid grid-cols-3 grid-rows-3">
-            <div className="border-r border-b border-white/30"></div>
-            <div className="border-r border-b border-white/30"></div>
-            <div className="border-b border-white/30"></div>
-            <div className="border-r border-b border-white/30"></div>
-            <div className="border-r border-b border-white/30"></div>
-            <div className="border-b border-white/30"></div>
-            <div className="border-r border-white/30"></div>
-            <div className="border-r border-white/30"></div>
+            <div className="border-r-2 border-b-2 border-white/30"></div>
+            <div className="border-r-2 border-b-2 border-white/30"></div>
+            <div className="border-b-2 border-white/30"></div>
+            <div className="border-r-2 border-b-2 border-white/30"></div>
+            <div className="border-r-2 border-b-2 border-white/30"></div>
+            <div className="border-b-2 border-white/30"></div>
+            <div className="border-r-2 border-white/30"></div>
+            <div className="border-r-2 border-white/30"></div>
             <div></div>
           </div>
         </div>

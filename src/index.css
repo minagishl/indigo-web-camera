@@ -39,10 +39,73 @@ html {
 }
 
 .capture-button-container {
-  @apply absolute bottom-26 left-1/2;
-  transform: translateX(-50%);
+  @apply absolute;
   z-index: 15;
   touch-action: manipulation;
+
+  /* Default: bottom center (desktop and mobile portrait) */
+  bottom: 104px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Mobile landscape: right side */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  .capture-button-container {
+    bottom: auto;
+    left: auto;
+    right: 32px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .camera-mode-selector {
+    bottom: auto !important;
+    left: 32px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .camera-mode-selector > div {
+    flex-direction: column !important;
+  }
+
+  .status-bar {
+    top: auto !important;
+    bottom: 32px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .refresh-button-group {
+    bottom: auto !important;
+    right: auto !important;
+    top: 32px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+}
+
+/* Tablet landscape: similar to mobile but with more space */
+@media screen and (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+  .capture-button-container {
+    bottom: auto;
+    left: auto;
+    right: 48px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .camera-mode-selector {
+    bottom: auto !important;
+    left: 48px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
 }
 
 .control-button {

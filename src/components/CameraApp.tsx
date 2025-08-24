@@ -63,7 +63,7 @@ export function CameraApp() {
           const photoObject = {
             id: `photo_${Date.now()}_${Math.random()
               .toString(36)
-              .substr(2, 9)}`,
+              .substring(2, 11)}`,
             blob: photo,
             timestamp: Date.now(),
             label: `Night mode (${cameraMode.captureSettings.frameCount} frames)`,
@@ -81,7 +81,7 @@ export function CameraApp() {
           const photoObject = {
             id: `photo_${Date.now()}_${Math.random()
               .toString(36)
-              .substr(2, 9)}`,
+              .substring(2, 11)}`,
             blob: photo,
             timestamp: Date.now(),
             label: "Long exposure (2s)",
@@ -97,7 +97,7 @@ export function CameraApp() {
           const photoObject = {
             id: `photo_${Date.now()}_${Math.random()
               .toString(36)
-              .substr(2, 9)}`,
+              .substring(2, 11)}`,
             blob: photo,
             timestamp: Date.now(),
             label: "Photo",
@@ -133,7 +133,9 @@ export function CameraApp() {
       const photo = await burstCapture(burstCount, jpegQuality);
       if (photo) {
         const photoObject = {
-          id: `photo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          id: `photo_${Date.now()}_${Math.random()
+            .toString(36)
+            .substring(2, 11)}`,
           blob: photo,
           timestamp: Date.now(),
           label: `Burst (${burstCount} shots)`,

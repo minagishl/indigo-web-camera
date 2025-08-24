@@ -15,21 +15,11 @@ export function StatusBar({
   showGrid = false,
   onGridToggle,
 }: StatusBarProps) {
-  const getStatusColor = (status: string) => {
-    if (status === "Ready") return "bg-green-600/80";
-    if (status === "Failed") return "bg-red-600/80";
-    return "bg-black/50";
-  };
-
   return (
     <div className="status-bar">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span
-            className={`px-3 py-1 rounded-full text-sm backdrop-blur ${getStatusColor(
-              status
-            )}`}
-          >
+        <div className="flex items-center gap-2">
+          <span className="px-2 py-1 rounded text-xs bg-black/50 backdrop-blur">
             {status}
           </span>
           <span className="px-2 py-1 rounded text-xs bg-black/50 backdrop-blur">

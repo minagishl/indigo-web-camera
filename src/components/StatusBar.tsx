@@ -51,9 +51,9 @@ export function StatusBar({ status, resolution }: StatusBarProps) {
             <span className="px-3 text-xs text-white/70">{resolution}</span>
             {deviceOrientation.isOrientationAvailable() && (
               <>
-                <div className="w-px h-4 bg-white/30 mx-1"></div>
+                <div className="w-px h-4 bg-white/30 mx-1" />
                 <span className="px-3 text-xs text-white/70">
-                  📱 {getOrientationText()}
+                  {getOrientationText()}
                 </span>
               </>
             )}

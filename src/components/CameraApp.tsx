@@ -447,12 +447,16 @@ export function CameraApp() {
       )}
 
       {/* Refresh Button Group */}
-      <div className="refresh-button-group absolute bottom-8 right-8 z-10">
+      <div
+        className="refresh-button-group absolute bottom-8 right-8"
+        style={{ zIndex: 15 }}
+      >
         <div className="bg-black/50 backdrop-blur rounded-full p-1">
           <button
             onClick={handleStartCamera}
             className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white"
             title="Refresh Camera"
+            style={{ touchAction: "manipulation" }}
           >
             <RefreshCw size={18} />
           </button>

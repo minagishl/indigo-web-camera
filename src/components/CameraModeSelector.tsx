@@ -139,9 +139,11 @@ export function CameraModeSelector({
 
   return (
     <div
-      className="camera-mode-selector absolute bottom-8 left-1/2 z-10"
+      className="camera-mode-selector absolute bottom-8 left-1/2"
       style={{
         transform: `translateX(${centerOffset}px)`,
+        zIndex: 12,
+        touchAction: "manipulation",
       }}
     >
       <div ref={containerRef} className="flex items-center gap-4">
@@ -164,6 +166,7 @@ export function CameraModeSelector({
                 key={mode}
                 onClick={() => onModeChange(mode)}
                 className="w-10 h-10 rounded-full flex items-center justify-center relative z-10 text-white/70 hover:text-white"
+                style={{ touchAction: "manipulation" }}
               >
                 <Icon size={18} />
               </button>
@@ -180,6 +183,7 @@ export function CameraModeSelector({
                 onClick={toggleMobileMenu}
                 className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white"
                 title="Menu"
+                style={{ touchAction: "manipulation" }}
               >
                 <GripHorizontal size={18} />
               </button>

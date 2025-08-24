@@ -112,17 +112,54 @@ export function drawImageWithOrientation(
     imageHeight = height;
   }
 
+  // Calculate canvas aspect ratio after rotation
+  let canvasWidth = width;
+  let canvasHeight = height;
+
+  if (rotation === 90 || rotation === 270) {
+    [canvasWidth, canvasHeight] = [canvasHeight, canvasWidth];
+  }
+
+  // Calculate aspect ratios
+  const imageAspect = imageWidth / imageHeight;
+  const canvasAspect = canvasWidth / canvasHeight;
+
+  let sx = 0,
+    sy = 0,
+    sw = imageWidth,
+    sh = imageHeight;
+
+  if (imageAspect > canvasAspect) {
+    // Image is wider than canvas - crop width
+    sw = imageHeight * canvasAspect;
+    sx = (imageWidth - sw) / 2;
+  } else if (imageAspect < canvasAspect) {
+    // Image is taller than canvas - crop height
+    sh = imageWidth / canvasAspect;
+    sy = (imageHeight - sh) / 2;
+  }
+
   // Calculate dimensions after rotation
-  let drawWidth = imageWidth;
-  let drawHeight = imageHeight;
+  let drawWidth = sw;
+  let drawHeight = sh;
 
   if (rotation === 90 || rotation === 270) {
     // Swap width and height for 90 or 270 degree rotation
     [drawWidth, drawHeight] = [drawHeight, drawWidth];
   }
 
-  // Draw image (centered)
-  ctx.drawImage(image, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+  // Draw cropped image (centered)
+  ctx.drawImage(
+    image,
+    sx,
+    sy,
+    sw,
+    sh,
+    -drawWidth / 2,
+    -drawHeight / 2,
+    drawWidth,
+    drawHeight
+  );
 }
 
 /**

@@ -99,7 +99,7 @@ export const useCapture = (
       // Move to center of canvas
       ctx.translate(canvas.width / 2, canvas.height / 2);
 
-      // Apply rotation
+      // Apply rotation so that the arrow direction becomes the top of the image
       ctx.rotate((orientation * Math.PI) / 180);
 
       // Draw the image centered

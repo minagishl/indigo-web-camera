@@ -52,11 +52,11 @@ export function StatusBar({
       case 0:
         return "Normal";
       case 90:
-        return "Rotate Right";
+        return "Right becomes Top";
       case 180:
         return "Upside Down";
       case 270:
-        return "Rotate Left";
+        return "Left becomes Top";
       default:
         return "Normal";
     }

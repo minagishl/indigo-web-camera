@@ -377,7 +377,7 @@ export function CameraApp() {
                           : "bg-white/10 text-white/70 hover:bg-white/20"
                       }`}
                     >
-                      → Right
+                      → Right becomes Top
                     </button>
                     <button
                       onClick={() => setImageOrientation(180)}
@@ -397,7 +397,7 @@ export function CameraApp() {
                           : "bg-white/10 text-white/70 hover:bg-white/20"
                       }`}
                     >
-                      ← Left
+                      ← Left becomes Top
                     </button>
                   </div>
                   <p className="text-xs text-white/50 mt-1">
@@ -405,10 +405,10 @@ export function CameraApp() {
                     {settings.imageOrientation === 0
                       ? "Normal"
                       : settings.imageOrientation === 90
-                      ? "Rotated Right"
+                      ? "Right becomes Top"
                       : settings.imageOrientation === 180
                       ? "Upside Down"
-                      : "Rotated Left"}
+                      : "Left becomes Top"}
                   </p>
                 </div>
 

@@ -47,11 +47,11 @@ export function StatusBar({
               onClick={onGridToggle}
               className={`control-button ${showGrid ? "bg-white/40" : ""}`}
             >
-              <Grid3x3 size={20} />
+              <Grid3x3 size={16} />
             </button>
           )}
           <button onClick={onSettingsClick} className="control-button">
-            <Settings size={24} />
+            <Settings size={18} />
           </button>
         </div>
       </div>

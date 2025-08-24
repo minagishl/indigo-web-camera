@@ -33,14 +33,11 @@ html {
 }
 
 .capture-button {
-  @apply w-20 h-20 rounded-full bg-white flex items-center justify-center;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  @apply size-16 rounded-full bg-white flex items-center justify-center;
 }
 
 .control-button {
-  @apply w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm text-white flex items-center justify-center;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  @apply w-10 h-10 rounded-full bg-black/50 backdrop-blur text-white flex items-center justify-center;
 }
 
 .status-bar {

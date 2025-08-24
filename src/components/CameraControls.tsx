@@ -18,10 +18,10 @@ export function CameraControls({
 }: CameraControlsProps) {
   return (
     <div className="camera-controls">
-      <div className="flex items-center justify-center gap-8">
+      <div className="flex items-center justify-center gap-4">
         {/* Gallery Button */}
         <button onClick={onOpenGallery} className="control-button">
-          <Images size={24} />
+          <Images size={18} />
         </button>
 
         {/* Main Capture Button */}
@@ -30,7 +30,7 @@ export function CameraControls({
           disabled={isCapturing}
           className="capture-button disabled:opacity-50"
         >
-          <div className="w-16 h-16 rounded-full bg-black"></div>
+          <div className="size-14 rounded-full bg-black"></div>
         </button>
 
         {/* Mode-specific Button */}
@@ -40,7 +40,7 @@ export function CameraControls({
             disabled={isCapturing}
             className="control-button disabled:opacity-50"
           >
-            <Zap size={24} />
+            <Zap size={18} />
           </button>
         )}
         {currentMode === "photo" && (
@@ -49,7 +49,7 @@ export function CameraControls({
             disabled={isCapturing}
             className="control-button disabled:opacity-50"
           >
-            <Zap size={24} />
+            <Zap size={18} />
           </button>
         )}
       </div>

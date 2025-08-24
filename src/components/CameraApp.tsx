@@ -20,6 +20,7 @@ export function CameraApp() {
   const [logMessage, setLogMessage] = useState<string | null>(null);
   const [burstCount, setBurstCount] = useState(8);
   const [jpegQuality, setJpegQuality] = useState(0.92);
+  const [preferMax, setPreferMax] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const [activeTab, setActiveTab] = useState("settings");
@@ -157,7 +158,7 @@ export function CameraApp() {
 
   const handleStartCamera = useCallback(() => {
     camera
-      .startCamera()
+      .startCamera(preferMax)
       .then(() => {
         // Start frame buffer for advanced modes
         advancedCapture.startFrameBuffer();
@@ -165,7 +166,7 @@ export function CameraApp() {
       .catch((error) => {
         log(error.message || "Failed to start camera");
       });
-  }, [camera, advancedCapture, log]);
+  }, [camera, advancedCapture, log, preferMax]);
 
   const handleStopCamera = useCallback(() => {
     camera.stopCamera();
@@ -298,6 +299,18 @@ export function CameraApp() {
                     </span>
                   </div>
                 </div>
+
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={preferMax}
+                    onChange={(e) => setPreferMax(e.currentTarget.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-sm text-white">
+                    Request highest resolution
+                  </span>
+                </label>
 
                 <div className="flex items-center gap-4">
                   <button

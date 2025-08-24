@@ -100,7 +100,9 @@ export const useCapture = (
       ctx.translate(canvas.width / 2, canvas.height / 2);
 
       // Apply rotation so that the arrow direction becomes the top of the image
-      ctx.rotate((orientation * Math.PI) / 180);
+      // For 90°: rotate counter-clockwise to make right side become top
+      // For 270°: rotate clockwise to make left side become top
+      ctx.rotate((-orientation * Math.PI) / 180);
 
       // Draw the image centered
       ctx.drawImage(source, -width / 2, -height / 2, width, height);

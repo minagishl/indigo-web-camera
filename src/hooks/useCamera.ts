@@ -149,36 +149,6 @@ export const useCamera = () => {
     [state.stream, startCamera]
   );
 
-  const toggleAspectRatio = useCallback(async () => {
-    if (!state.track || state.status !== "Ready") return;
-
-    try {
-      const settings = state.track.getSettings();
-      const currentWidth = settings.width || 1920;
-      const currentHeight = settings.height || 1080;
-
-      // Toggle between landscape and portrait
-      const newWidth = currentHeight;
-      const newHeight = currentWidth;
-
-      await state.track.applyConstraints({
-        width: { ideal: newWidth },
-        height: { ideal: newHeight },
-      });
-
-      // Wait a bit for the constraint to apply
-      setTimeout(() => {
-        const updatedSettings = state.track?.getSettings();
-        if (updatedSettings?.width && updatedSettings?.height) {
-          const resolution = `${updatedSettings.width}×${updatedSettings.height}`;
-          setState((prev) => ({ ...prev, resolution }));
-        }
-      }, 200);
-    } catch (error) {
-      console.warn("Failed to toggle aspect ratio:", error);
-    }
-  }, [state.track, state.status]);
-
   return {
     state,
     videoRef,
@@ -186,7 +156,6 @@ export const useCamera = () => {
     stopCamera: cleanupStream,
     switchFacing,
     switchDevice,
-    toggleAspectRatio,
     listDevices,
   };
 };

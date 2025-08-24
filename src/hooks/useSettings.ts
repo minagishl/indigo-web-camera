@@ -8,6 +8,7 @@ export interface AppSettings {
   showGrid: boolean;
   activeTab: string;
   cameraMode: CameraMode;
+  imageOrientation: number; // 0, 90, 180, 270 degrees
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -17,6 +18,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   showGrid: false,
   activeTab: "settings",
   cameraMode: "photo",
+  imageOrientation: 0,
 };
 
 const SETTINGS_KEY = "indigo_web_camera_settings";
@@ -96,6 +98,13 @@ export const useSettings = () => {
     [saveSettings]
   );
 
+  const setImageOrientation = useCallback(
+    (orientation: number) => {
+      saveSettings({ imageOrientation: orientation });
+    },
+    [saveSettings]
+  );
+
   // Reset to defaults
   const resetSettings = useCallback(() => {
     setSettings(DEFAULT_SETTINGS);
@@ -116,6 +125,7 @@ export const useSettings = () => {
     setShowGrid,
     setActiveTab,
     setCameraMode,
+    setImageOrientation,
     resetSettings,
   };
 };

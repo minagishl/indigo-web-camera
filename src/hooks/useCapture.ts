@@ -73,8 +73,47 @@ export const useCapture = (
     []
   );
 
+  // Helper function to apply orientation to canvas or image
+  const applyOrientation = useCallback(
+    (
+      source: HTMLCanvasElement | HTMLImageElement,
+      orientation: number
+    ): HTMLCanvasElement => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d")!;
+
+      let width = source.width;
+      let height = source.height;
+
+      // Adjust canvas size based on orientation
+      if (orientation === 90 || orientation === 270) {
+        canvas.width = height;
+        canvas.height = width;
+      } else {
+        canvas.width = width;
+        canvas.height = height;
+      }
+
+      ctx.save();
+
+      // Move to center of canvas
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+
+      // Apply rotation
+      ctx.rotate((orientation * Math.PI) / 180);
+
+      // Draw the image centered
+      ctx.drawImage(source, -width / 2, -height / 2, width, height);
+
+      ctx.restore();
+
+      return canvas;
+    },
+    []
+  );
+
   const takePhoto = useCallback(
-    async (quality = 0.92): Promise<Blob | null> => {
+    async (quality = 0.92, imageOrientation = 0): Promise<Blob | null> => {
       if (!track) return null;
 
       try {
@@ -107,7 +146,26 @@ export const useCapture = (
         if (!blob) {
           // Fallback: capture from video element
           const canvas = videoToCanvas();
-          blob = await canvasToBlob(canvas, "image/jpeg", quality);
+
+          // Apply orientation if needed
+          if (imageOrientation !== 0) {
+            const orientedCanvas = applyOrientation(canvas, imageOrientation);
+            blob = await canvasToBlob(orientedCanvas, "image/jpeg", quality);
+          } else {
+            blob = await canvasToBlob(canvas, "image/jpeg", quality);
+          }
+        } else if (imageOrientation !== 0 && blob) {
+          // Apply orientation to ImageCapture result
+          const img = new Image();
+
+          await new Promise((resolve) => {
+            img.src = URL.createObjectURL(blob!);
+            img.onload = resolve;
+          });
+
+          const orientedCanvas = applyOrientation(img, imageOrientation);
+          blob = await canvasToBlob(orientedCanvas, "image/jpeg", quality);
+          URL.revokeObjectURL(img.src);
         }
 
         return blob;
@@ -116,11 +174,15 @@ export const useCapture = (
         throw error;
       }
     },
-    [track, videoToCanvas, canvasToBlob, videoRef]
+    [track, videoToCanvas, canvasToBlob, videoRef, applyOrientation]
   );
 
   const burstCapture = useCallback(
-    async (count: number, quality = 0.92): Promise<Blob | null> => {
+    async (
+      count: number,
+      quality = 0.92,
+      imageOrientation = 0
+    ): Promise<Blob | null> => {
       if (!track) return null;
 
       try {
@@ -201,13 +263,22 @@ export const useCapture = (
         let blob = await canvasToBlob(outputCanvas, "image/jpeg", quality);
         frames.forEach((bitmap) => bitmap.close && bitmap.close());
 
+        // Apply orientation if needed
+        if (imageOrientation !== 0) {
+          const orientedCanvas = applyOrientation(
+            outputCanvas,
+            imageOrientation
+          );
+          blob = await canvasToBlob(orientedCanvas, "image/jpeg", quality);
+        }
+
         return blob;
       } catch (error) {
         console.error("Failed to capture burst:", error);
         throw error;
       }
     },
-    [track, videoRef, videoToCanvas, canvasToBlob]
+    [track, videoRef, videoToCanvas, canvasToBlob, applyOrientation]
   );
 
   return {

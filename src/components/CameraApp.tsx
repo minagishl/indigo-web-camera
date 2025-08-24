@@ -29,6 +29,7 @@ export function CameraApp() {
     setShowGrid,
     setActiveTab,
     setCameraMode,
+    setImageOrientation,
   } = useSettings();
 
   const camera = useCamera();
@@ -56,6 +57,14 @@ export function CameraApp() {
     setLogMessage(message);
     setTimeout(() => setLogMessage(null), 3000);
   }, []);
+
+  const handleOrientationChange = useCallback(() => {
+    const orientations = [0, 90, 180, 270];
+    const currentIndex = orientations.indexOf(settings.imageOrientation);
+    const nextIndex = (currentIndex + 1) % orientations.length;
+    setImageOrientation(orientations[nextIndex]);
+    log(`Image orientation changed to ${orientations[nextIndex]}°`);
+  }, [settings.imageOrientation, setImageOrientation, log]);
 
   // Don't render until settings are loaded
   if (!isLoaded) {
@@ -114,7 +123,10 @@ export function CameraApp() {
           throw new Error("Long exposure capture failed");
         }
       } else {
-        photo = await takePhoto(settings.jpegQuality);
+        photo = await takePhoto(
+          settings.jpegQuality,
+          settings.imageOrientation
+        );
         if (photo) {
           const photoObject = {
             id: `photo_${Date.now()}_${Math.random()
@@ -122,7 +134,7 @@ export function CameraApp() {
               .substring(2, 11)}`,
             blob: photo,
             timestamp: Date.now(),
-            label: "Photo",
+            label: `Photo (${settings.imageOrientation}°)`,
           };
           photos.addPhoto(photoObject);
           log("Photo saved");
@@ -154,7 +166,8 @@ export function CameraApp() {
       setIsCapturing(true);
       const photo = await burstCapture(
         settings.burstCount,
-        settings.jpegQuality
+        settings.jpegQuality,
+        settings.imageOrientation
       );
       if (photo) {
         const photoObject = {
@@ -163,7 +176,7 @@ export function CameraApp() {
             .substring(2, 11)}`,
           blob: photo,
           timestamp: Date.now(),
-          label: `Burst (${settings.burstCount} shots)`,
+          label: `Burst (${settings.burstCount} shots, ${settings.imageOrientation}°)`,
         };
         photos.addPhoto(photoObject);
         log("Burst capture complete");
@@ -238,7 +251,8 @@ export function CameraApp() {
       <StatusBar
         status={camera.state.status}
         resolution={camera.state.resolution}
-        onResolutionClick={camera.toggleAspectRatio}
+        imageOrientation={settings.imageOrientation}
+        onOrientationChange={handleOrientationChange}
       />
 
       {/* Bottom Overlay */}
@@ -339,6 +353,64 @@ export function CameraApp() {
                     Request highest resolution
                   </span>
                 </label>
+
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    Image Orientation
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setImageOrientation(0)}
+                      className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                        settings.imageOrientation === 0
+                          ? "bg-white/30 text-white"
+                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                      }`}
+                    >
+                      ↑ Normal
+                    </button>
+                    <button
+                      onClick={() => setImageOrientation(90)}
+                      className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                        settings.imageOrientation === 90
+                          ? "bg-white/30 text-white"
+                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                      }`}
+                    >
+                      → Right
+                    </button>
+                    <button
+                      onClick={() => setImageOrientation(180)}
+                      className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                        settings.imageOrientation === 180
+                          ? "bg-white/30 text-white"
+                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                      }`}
+                    >
+                      ↓ Down
+                    </button>
+                    <button
+                      onClick={() => setImageOrientation(270)}
+                      className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                        settings.imageOrientation === 270
+                          ? "bg-white/30 text-white"
+                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                      }`}
+                    >
+                      ← Left
+                    </button>
+                  </div>
+                  <p className="text-xs text-white/50 mt-1">
+                    Current: {settings.imageOrientation}° -{" "}
+                    {settings.imageOrientation === 0
+                      ? "Normal"
+                      : settings.imageOrientation === 90
+                      ? "Rotated Right"
+                      : settings.imageOrientation === 180
+                      ? "Upside Down"
+                      : "Rotated Left"}
+                  </p>
+                </div>
 
                 <div className="flex items-center gap-4 flex-wrap">
                   <button

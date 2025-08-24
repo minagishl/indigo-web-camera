@@ -1,9 +1,16 @@
 import { tv } from "tailwind-variants";
+import {
+  ArrowUpCircle,
+  ArrowRightCircle,
+  ArrowDownCircle,
+  ArrowLeftCircle,
+} from "lucide-preact";
 
 export interface StatusBarProps {
   status: "Idle" | "Starting" | "Ready" | "Failed" | "Stopped";
   resolution: string;
-  onResolutionClick?: () => void;
+  imageOrientation: number;
+  onOrientationChange?: () => void;
 }
 
 const statusCircle = tv({
@@ -22,8 +29,39 @@ const statusCircle = tv({
 export function StatusBar({
   status,
   resolution,
-  onResolutionClick,
+  imageOrientation,
+  onOrientationChange,
 }: StatusBarProps) {
+  const getOrientationIcon = () => {
+    switch (imageOrientation) {
+      case 0:
+        return <ArrowUpCircle size={16} />;
+      case 90:
+        return <ArrowRightCircle size={16} />;
+      case 180:
+        return <ArrowDownCircle size={16} />;
+      case 270:
+        return <ArrowLeftCircle size={16} />;
+      default:
+        return <ArrowUpCircle size={16} />;
+    }
+  };
+
+  const getOrientationLabel = () => {
+    switch (imageOrientation) {
+      case 0:
+        return "Normal";
+      case 90:
+        return "Rotate Right";
+      case 180:
+        return "Upside Down";
+      case 270:
+        return "Rotate Left";
+      default:
+        return "Normal";
+    }
+  };
+
   return (
     <div className="status-bar">
       <div className="flex items-center justify-between">
@@ -34,12 +72,14 @@ export function StatusBar({
               {status}
             </span>
             <div className="w-px h-4 bg-white/30 mx-1"></div>
+            <span className="px-3 text-xs text-white/70">{resolution}</span>
+            <div className="w-px h-4 bg-white/30 mx-1"></div>
             <button
-              className="px-3 text-xs text-white/70 hover:text-white transition-colors cursor-pointer"
-              onClick={onResolutionClick}
-              title="Click to toggle aspect ratio"
+              className="px-3 text-xs text-white/70 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+              onClick={onOrientationChange}
+              title={`Image Orientation: ${getOrientationLabel()}`}
             >
-              {resolution}
+              {getOrientationIcon()}
             </button>
           </div>
         </div>

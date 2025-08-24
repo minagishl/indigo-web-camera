@@ -339,7 +339,7 @@ export function CameraApp() {
                   </span>
                 </label>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
                   <button
                     onClick={handleStartCamera}
                     className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-xl transition-colors"
@@ -352,7 +352,42 @@ export function CameraApp() {
                   >
                     Stop Camera
                   </button>
+                  <button
+                    onClick={camera.switchFacing}
+                    disabled={camera.state.status !== "Ready"}
+                    className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Switch Camera (
+                    {camera.state.facing === "environment" ? "Back" : "Front"})
+                  </button>
                 </div>
+
+                {/* Camera Device Selection */}
+                {camera.state.devices.length > 1 && (
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-2">
+                      Camera Device
+                    </label>
+                    <select
+                      value={camera.state.deviceId || ""}
+                      onChange={(e) => {
+                        const deviceId = e.currentTarget.value;
+                        if (deviceId) {
+                          camera.switchDevice(deviceId);
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-white/40 transition-colors"
+                    >
+                      <option value="">Auto Select</option>
+                      {camera.state.devices.map((device) => (
+                        <option key={device.deviceId} value={device.deviceId}>
+                          {device.label ||
+                            `Camera ${device.deviceId.substring(0, 8)}...`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             )}
 

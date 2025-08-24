@@ -238,6 +238,7 @@ export function CameraApp() {
       <StatusBar
         status={camera.state.status}
         resolution={camera.state.resolution}
+        onResolutionClick={camera.toggleAspectRatio}
       />
 
       {/* Bottom Overlay */}

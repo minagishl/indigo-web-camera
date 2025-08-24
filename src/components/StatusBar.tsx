@@ -1,8 +1,9 @@
 import { tv } from "tailwind-variants";
 
-interface StatusBarProps {
+export interface StatusBarProps {
   status: "Idle" | "Starting" | "Ready" | "Failed" | "Stopped";
   resolution: string;
+  onResolutionClick?: () => void;
 }
 
 const statusCircle = tv({
@@ -18,7 +19,11 @@ const statusCircle = tv({
   },
 });
 
-export function StatusBar({ status, resolution }: StatusBarProps) {
+export function StatusBar({
+  status,
+  resolution,
+  onResolutionClick,
+}: StatusBarProps) {
   return (
     <div className="status-bar">
       <div className="flex items-center justify-between">
@@ -29,7 +34,13 @@ export function StatusBar({ status, resolution }: StatusBarProps) {
               {status}
             </span>
             <div className="w-px h-4 bg-white/30 mx-1"></div>
-            <span className="px-3 text-xs text-white/70">{resolution}</span>
+            <button
+              className="px-3 text-xs text-white/70 hover:text-white transition-colors cursor-pointer"
+              onClick={onResolutionClick}
+              title="Click to toggle aspect ratio"
+            >
+              {resolution}
+            </button>
           </div>
         </div>
         <div className="flex items-center gap-2">

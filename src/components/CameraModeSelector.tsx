@@ -128,13 +128,13 @@ export function CameraModeSelector({
   };
 
   const closeMobileMenu = () => {
-    if (!showMobileMenu || isClosing) return; // 既に閉じている場合は何もしない
+    if (!showMobileMenu || isClosing) return; // Do nothing if already closed
 
     setIsClosing(true);
     setTimeout(() => {
       setShowMobileMenu(false);
       setIsClosing(false);
-    }, 200); // アニメーション完了後に非表示（0.2秒）
+    }, 200); // Hide after animation completes (0.2s)
   };
 
   return (
@@ -253,7 +253,7 @@ export function CameraModeSelector({
                 <button
                   onClick={() => {
                     closeMobileMenu();
-                    // メニューを閉じた後にバーストキャプチャを実行
+                    // Execute burst capture after closing menu
                     setTimeout(() => {
                       onBurstCapture();
                     }, 100);
@@ -270,7 +270,7 @@ export function CameraModeSelector({
                 <button
                   onClick={() => {
                     closeMobileMenu();
-                    // メニューを閉じた後にManual Controlsを開く
+                    // Open Manual Controls after closing menu
                     setTimeout(() => {
                       onOpenSettings();
                     }, 100);
@@ -286,7 +286,7 @@ export function CameraModeSelector({
                 <button
                   onClick={() => {
                     closeMobileMenu();
-                    // メニューを閉じた後にGridを切り替え
+                    // Toggle Grid after closing menu
                     setTimeout(() => {
                       onGridToggle();
                     }, 100);
@@ -304,7 +304,7 @@ export function CameraModeSelector({
                 <button
                   onClick={() => {
                     closeMobileMenu();
-                    // メニューを閉じた後にGalleryを開く
+                    // Open Gallery after closing menu
                     setTimeout(() => {
                       onOpenGallery();
                     }, 100);

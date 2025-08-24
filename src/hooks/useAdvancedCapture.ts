@@ -1,9 +1,14 @@
 import { useCallback, useRef } from "preact/hooks";
 import type { CaptureSettings } from "../types/camera";
+import {
+  createOrientedImageBlob,
+  calculateImageOrientation,
+} from "../utils/imageOrientation";
 
 export const useAdvancedCapture = (
   videoRef: React.RefObject<HTMLVideoElement>,
-  track: MediaStreamTrack | null
+  track: MediaStreamTrack | null,
+  deviceOrientation: number = 0
 ) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameBufferRef = useRef<ImageData[]>([]);
@@ -52,7 +57,7 @@ export const useAdvancedCapture = (
     };
 
     captureFrame();
-  }, [videoRef, track]);
+  }, [videoRef, track, deviceOrientation]);
 
   const stopFrameBuffer = useCallback(() => {
     isCapturingRef.current = false;
@@ -103,19 +108,41 @@ export const useAdvancedCapture = (
       }
 
       // Convert to blob
-      return new Promise((resolve, reject) => {
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject(new Error("Failed to create blob from canvas"));
-            }
-          },
-          "image/jpeg",
-          jpegQuality
-        );
-      });
+      let blob: Blob | null = null;
+
+      try {
+        blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error("Failed to create blob from canvas"));
+              }
+            },
+            "image/jpeg",
+            jpegQuality
+          );
+        });
+
+        // Adjust image orientation based on device orientation
+        if (blob && deviceOrientation !== 0) {
+          const video = videoRef.current;
+          if (video) {
+            const orientationInfo =
+              calculateImageOrientation(deviceOrientation);
+            blob = await createOrientedImageBlob(
+              video,
+              orientationInfo,
+              jpegQuality
+            );
+          }
+        }
+
+        return blob;
+      } catch (error) {
+        throw error;
+      }
     },
     [videoRef, track]
   );
@@ -196,21 +223,43 @@ export const useAdvancedCapture = (
       // Merge frames with motion blur
       await mergeFramesWithMotionBlur(ctx, frames, canvas.width, canvas.height);
 
-      return new Promise((resolve, reject) => {
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject(new Error("Failed to create blob from canvas"));
-            }
-          },
-          "image/jpeg",
-          jpegQuality
-        );
-      });
+      let blob: Blob | null = null;
+
+      try {
+        blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error("Failed to create blob from canvas"));
+              }
+            },
+            "image/jpeg",
+            jpegQuality
+          );
+        });
+
+        // Adjust image orientation based on device orientation
+        if (blob && deviceOrientation !== 0) {
+          const video = videoRef.current;
+          if (video) {
+            const orientationInfo =
+              calculateImageOrientation(deviceOrientation);
+            blob = await createOrientedImageBlob(
+              video,
+              orientationInfo,
+              jpegQuality
+            );
+          }
+        }
+
+        return blob;
+      } catch (error) {
+        throw error;
+      }
     },
-    [videoRef, track]
+    [videoRef, track, deviceOrientation]
   );
 
   const mergeFramesWithMotionBlur = useCallback(

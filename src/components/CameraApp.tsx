@@ -6,6 +6,7 @@ import { useCapture } from "../hooks/useCapture";
 import { useAdvancedCapture } from "../hooks/useAdvancedCapture";
 import { usePhotos } from "../hooks/usePhotos";
 import { useManualControls } from "../hooks/useManualControls";
+import { useDeviceOrientation } from "../hooks/useDeviceOrientation";
 import { CameraControls } from "./CameraControls";
 import { CameraModeSelector } from "./CameraModeSelector";
 
@@ -24,13 +25,16 @@ export function CameraApp() {
   const [activeTab, setActiveTab] = useState("settings");
 
   const camera = useCamera();
+  const deviceOrientation = useDeviceOrientation();
   const { canvasRef, takePhoto, burstCapture } = useCapture(
     camera.videoRef,
-    camera.state.track
+    camera.state.track,
+    deviceOrientation.getPhotoOrientation()
   );
   const advancedCapture = useAdvancedCapture(
     camera.videoRef,
-    camera.state.track
+    camera.state.track,
+    deviceOrientation.getPhotoOrientation()
   );
   const photos = usePhotos();
   const cameraMode = useCameraMode();

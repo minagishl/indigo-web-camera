@@ -46,61 +46,76 @@ export function GalleryModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
-      <div className="flex items-center justify-between p-4 border-b border-white/20">
-        <h2 className="text-xl font-semibold">Gallery</h2>
-        <button onClick={onClose} className="control-button">
-          <X size={20} />
-        </button>
-      </div>
+    <div className="absolute top-0 left-0 w-full h-full z-20">
+      <div
+        className="absolute top-0 left-0 w-full h-full bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      ></div>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl max-h-[90vh] bg-black/50 backdrop-blur rounded-3xl p-6 overflow-y-auto border border-white/30">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-semibold text-white">Gallery</h2>
+          <button
+            onClick={onClose}
+            className="size-10 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-      <div className="flex-1 p-4 overflow-y-auto">
-        {photos.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-white/60">
-            <p>No photos yet. Take some photos to see them here!</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4">
-            {photos.map((photo) => {
-              const imageUrl = imageUrls.get(photo.id);
-              if (!imageUrl) return null;
+        <div className="flex-1 overflow-y-auto">
+          {photos.length === 0 ? (
+            <div className="flex items-center justify-center h-32 text-white/60">
+              <p className="text-lg">
+                No photos yet. Take some photos to see them here!
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {photos.map((photo) => {
+                const imageUrl = imageUrls.get(photo.id);
+                if (!imageUrl) return null;
 
-              return (
-                <div
-                  key={photo.id}
-                  className="rounded-lg overflow-hidden border border-white/20 bg-white/10"
-                >
-                  <img
-                    src={imageUrl}
-                    alt="captured"
-                    className="w-full aspect-video object-cover"
-                  />
-                  <div className="p-2 text-xs flex items-center justify-between">
-                    <span className="text-white/80 truncate flex-1 mr-2">
-                      {photo.label}
-                    </span>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleDownload(photo)}
-                        className="text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                        title="Download"
-                      >
-                        <Download size={16} />
-                      </button>
-                      <button
-                        onClick={() => onDelete(photo.id)}
-                        className="text-red-400 hover:text-red-300 flex items-center gap-1"
-                        title="Delete"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                return (
+                  <div
+                    key={photo.id}
+                    className="group rounded-2xl overflow-hidden border border-white/20 bg-white/5 transition-colors duration-300"
+                  >
+                    <div className="relative">
+                      <img
+                        src={imageUrl}
+                        alt="captured"
+                        className="w-full aspect-video object-cover"
+                      />
+                    </div>
+                    <div className="p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-white/90 truncate flex-1 mr-2 font-medium">
+                          {photo.label}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleDownload(photo)}
+                          className="flex-1 px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-xs rounded-xl transition-colors flex items-center justify-center"
+                          title="Download"
+                        >
+                          <Download size={14} />
+                        </button>
+                        <button
+                          onClick={() => onDelete(photo.id)}
+                          className="flex-1 px-3 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs rounded-xl transition-colors flex items-center justify-center"
+                          title="Delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -82,17 +82,7 @@ export function ManualControlsPanel({
   };
 
   if (!isManualMode) {
-    return (
-      <div className="manual-controls-toggle absolute bottom-32 right-4 z-10">
-        <button
-          onClick={() => onToggleManual(true)}
-          className="control-button"
-          title="Manual Controls"
-        >
-          <Settings size={20} />
-        </button>
-      </div>
-    );
+    return null;
   }
 
   return (

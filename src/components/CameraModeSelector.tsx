@@ -1,4 +1,13 @@
-import { Camera, Moon, Timer, Zap } from "lucide-preact";
+import {
+  Camera,
+  Moon,
+  Timer,
+  Zap,
+  Settings,
+  Grid3x3,
+  Images,
+  GripHorizontal,
+} from "lucide-preact";
 import { useRef, useEffect, useState } from "preact/hooks";
 import type { CameraMode } from "../types/camera";
 
@@ -7,6 +16,10 @@ interface CameraModeSelectorProps {
   onModeChange: (mode: CameraMode) => void;
   onBurstCapture: () => void;
   isCapturing: boolean;
+  onOpenSettings?: () => void;
+  showGrid?: boolean;
+  onGridToggle?: () => void;
+  onOpenGallery?: () => void;
 }
 
 const MODE_CONFIGS = {
@@ -32,12 +45,18 @@ export function CameraModeSelector({
   onModeChange,
   onBurstCapture,
   isCapturing,
+  onOpenSettings,
+  showGrid,
+  onGridToggle,
+  onOpenGallery,
 }: CameraModeSelectorProps) {
   const modes = Object.keys(MODE_CONFIGS) as CameraMode[];
   const activeIndex = modes.indexOf(currentMode);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [centerOffset, setCenterOffset] = useState(0);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   const showZapButton = currentMode === "photo" || currentMode === "night";
 
@@ -47,21 +66,11 @@ export function CameraModeSelector({
 
     const updateOffset = () => {
       const container = containerRef.current!;
-      const containerRect = container.getBoundingClientRect();
-      const containerWidth = containerRect.width;
+      const containerWidth = container.getBoundingClientRect().width;
 
-      // When Zap button is not displayed (longExposure mode),
-      // calculate center alignment using only the mode selector width
-      if (!showZapButton) {
-        // Mode selector width: 3 buttons + padding + gap
-        const modeSelectorWidth = 3 * 40 + 8 + 0; // 3 buttons × 40px + 8px padding + 0px gap
-        const offset = -modeSelectorWidth / 2;
-        setCenterOffset(offset);
-      } else {
-        // When Zap button is displayed, center align using the entire container width
-        const offset = -containerWidth / 2;
-        setCenterOffset(offset);
-      }
+      // Center align using the entire container width
+      const offset = -containerWidth / 2;
+      setCenterOffset(offset);
     };
 
     // Initial calculation
@@ -72,17 +81,71 @@ export function CameraModeSelector({
     resizeObserver.observe(containerRef.current);
 
     return () => resizeObserver.disconnect();
-  }, [showZapButton]);
+  }, []);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        closeMobileMenu();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Close mobile menu when screen size changes to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768 && showMobileMenu) {
+        closeMobileMenu();
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [showMobileMenu]);
+
+  // Close mobile menu on initial render if screen is desktop size
+  useEffect(() => {
+    if (window.innerWidth >= 768 && showMobileMenu) {
+      setShowMobileMenu(false);
+      setIsClosing(false);
+    }
+  }, []);
+
+  const toggleMobileMenu = () => {
+    if (showMobileMenu) {
+      closeMobileMenu();
+    } else {
+      setShowMobileMenu(true);
+      setIsClosing(false);
+    }
+  };
+
+  const closeMobileMenu = () => {
+    if (!showMobileMenu || isClosing) return; // 既に閉じている場合は何もしない
+
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowMobileMenu(false);
+      setIsClosing(false);
+    }, 200); // アニメーション完了後に非表示（0.2秒）
+  };
 
   return (
     <div
-      className="camera-mode-selector absolute bottom-24 left-1/2 z-10"
+      className="camera-mode-selector absolute bottom-8 left-1/2 z-10"
       style={{
         transform: `translateX(${centerOffset}px)`,
       }}
     >
-      <div ref={containerRef} className="flex items-center gap-3">
-        {/* Mode selector with sliding background */}
+      <div ref={containerRef} className="flex items-center gap-4">
+        {/* Group 1: Camera Mode Selector */}
         <div className="flex items-center bg-black/50 backdrop-blur rounded-full p-1 relative">
           {/* Sliding background */}
           <div
@@ -108,21 +171,151 @@ export function CameraModeSelector({
           })}
         </div>
 
-        {/* Independent Zap button */}
-        <div
-          className={`zap-button-container transition-all duration-300 ${
-            showZapButton
-              ? "opacity-100 scale-100"
-              : "opacity-0 scale-90 pointer-events-none"
-          }`}
-        >
-          <button
-            onClick={onBurstCapture}
-            disabled={isCapturing}
-            className="control-button disabled:opacity-50"
-          >
-            <Zap size={18} />
-          </button>
+        {/* Group 2: Mobile Menu (GripHorizontal) and Desktop Icons */}
+        <div className="relative">
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <div className="manual-controls-group flex items-center bg-black/50 backdrop-blur rounded-full p-1">
+              <button
+                onClick={toggleMobileMenu}
+                className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white"
+                title="Menu"
+              >
+                <GripHorizontal size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Desktop Icons */}
+          <div className="hidden md:flex items-center bg-black/50 backdrop-blur rounded-full p-1 overflow-hidden">
+            {/* Zap Button */}
+            <div
+              className={`zap-button-container ${
+                showZapButton
+                  ? "opacity-100 scale-100 w-10 ml-0"
+                  : "opacity-0 scale-95 w-0 ml-0"
+              }`}
+            >
+              <button
+                onClick={onBurstCapture}
+                disabled={isCapturing}
+                className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white disabled:opacity-50"
+              >
+                <Zap size={18} />
+              </button>
+            </div>
+
+            {/* Manual Controls Button */}
+            {onOpenSettings && (
+              <button
+                onClick={onOpenSettings}
+                className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white"
+                title="Manual Controls"
+              >
+                <Settings size={18} />
+              </button>
+            )}
+
+            {/* Grid Button */}
+            {onGridToggle && (
+              <button
+                onClick={() => onGridToggle()}
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white ${
+                  showGrid ? "bg-white/40" : ""
+                }`}
+                title="Toggle Grid"
+              >
+                <Grid3x3 size={18} />
+              </button>
+            )}
+
+            {/* Gallery Button */}
+            {onOpenGallery && (
+              <button
+                onClick={() => onOpenGallery()}
+                className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white"
+                title="Open Gallery"
+              >
+                <Images size={18} />
+              </button>
+            )}
+          </div>
+
+          {/* Mobile Dropdown Menu */}
+          {(showMobileMenu || isClosing) && (
+            <div
+              className={`mobile-menu-container absolute bottom-full right-0 mb-4 bg-black/50 backdrop-blur rounded-full p-1 z-20 transform -translate-y-1 ${
+                isClosing ? "mobile-menu-closing" : ""
+              }`}
+            >
+              {/* Zap Button */}
+              {showZapButton && (
+                <button
+                  onClick={() => {
+                    closeMobileMenu();
+                    // メニューを閉じた後にバーストキャプチャを実行
+                    setTimeout(() => {
+                      onBurstCapture();
+                    }, 100);
+                  }}
+                  disabled={isCapturing}
+                  className="mobile-menu-item size-10 flex items-center justify-center gap-3 rounded-full text-white/70 hover:text-white disabled:opacity-50"
+                >
+                  <Zap size={18} />
+                </button>
+              )}
+
+              {/* Manual Controls Button */}
+              {onOpenSettings && (
+                <button
+                  onClick={() => {
+                    closeMobileMenu();
+                    // メニューを閉じた後にManual Controlsを開く
+                    setTimeout(() => {
+                      onOpenSettings();
+                    }, 100);
+                  }}
+                  className="mobile-menu-item size-10 flex items-center justify-center gap-3 rounded-full text-white/70 hover:text-white"
+                >
+                  <Settings size={18} />
+                </button>
+              )}
+
+              {/* Grid Button */}
+              {onGridToggle && (
+                <button
+                  onClick={() => {
+                    closeMobileMenu();
+                    // メニューを閉じた後にGridを切り替え
+                    setTimeout(() => {
+                      onGridToggle();
+                    }, 100);
+                  }}
+                  className={`mobile-menu-item size-10 flex items-center justify-center gap-3 rounded-full text-white/70 hover:text-white ${
+                    showGrid ? "bg-white/20" : ""
+                  }`}
+                >
+                  <Grid3x3 size={18} />
+                </button>
+              )}
+
+              {/* Gallery Button */}
+              {onOpenGallery && (
+                <button
+                  onClick={() => {
+                    closeMobileMenu();
+                    // メニューを閉じた後にGalleryを開く
+                    setTimeout(() => {
+                      onOpenGallery();
+                    }, 100);
+                  }}
+                  className="mobile-menu-item size-10 flex items-center justify-center gap-3 rounded-full text-white/70 hover:text-white"
+                >
+                  <Images size={18} />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

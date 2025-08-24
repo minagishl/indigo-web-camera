@@ -4,8 +4,10 @@ interface LogPanelProps {
 
 export function LogPanel({ message }: LogPanelProps) {
   return (
-    <div className="fixed bottom-4 left-4 right-4 bg-black/80 backdrop-blur rounded-lg p-3 text-xs text-white/80">
-      <div>Log: {message}</div>
+    <div className="absolute top-8 right-8 z-10">
+      <div className="flex items-center bg-black/50 backdrop-blur rounded-full p-1 h-12">
+        <span className="px-3 text-xs text-white/70">{message}</span>
+      </div>
     </div>
   );
 }

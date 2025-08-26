@@ -1,6 +1,7 @@
 import { useCallback, useRef } from "preact/hooks";
 import { type RefObject } from "preact/compat";
 import { decideJpegQuality } from "../utils/qualityPolicy"; // Phase 1 quality policy
+import { setJpegOrientation } from "../utils/exif";
 
 export const useCapture = (
   videoRef: RefObject<HTMLVideoElement>,
@@ -185,44 +186,28 @@ export const useCapture = (
             };
           }
         } else {
-          // ImageCapture path: now physically rotate if requested so output matches UI
+          // ImageCapture path: preserve original JPEG metadata (ISO etc.)
+          // Inject / update EXIF orientation tag without re-encoding.
           if (blob && imageOrientation !== 0) {
             try {
-              const bmp = await createImageBitmap(blob);
-              const tmp = document.createElement("canvas");
-              tmp.width =
-                bmp.width ||
-                video?.videoWidth ||
-                (track.getSettings ? track.getSettings().width || 0 : 0);
-              tmp.height =
-                bmp.height ||
-                video?.videoHeight ||
-                (track.getSettings ? track.getSettings().height || 0 : 0);
-              const tctx = tmp.getContext("2d")!;
-              tctx.drawImage(bmp, 0, 0, tmp.width, tmp.height);
-              const oriented = applyOrientation(tmp, imageOrientation);
-              blob = await canvasToBlob(
-                oriented,
-                "image/jpeg",
-                effectiveQuality
-              );
+              blob = await setJpegOrientation(blob, imageOrientation);
               (blob as any).orientationMeta = {
                 deviceOrientation: imageOrientation,
-                appliedRotation: imageOrientation,
-                deferred: false,
+                appliedRotation: 0,
+                deferred: true,
               };
             } catch {
               (blob as any).orientationMeta = {
                 deviceOrientation: imageOrientation,
                 appliedRotation: 0,
-                deferred: false,
+                deferred: true,
               };
             }
           } else {
             (blob as any).orientationMeta = {
               deviceOrientation: imageOrientation,
               appliedRotation: 0,
-              deferred: false,
+              deferred: true,
             };
           }
         }

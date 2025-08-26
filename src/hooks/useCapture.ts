@@ -185,20 +185,44 @@ export const useCapture = (
             };
           }
         } else {
-          // ImageCapture path: Phase 1 orientation recompression avoidance
-          // We DO NOT re-draw pixels for orientation here; we defer pixel rotation
-          // for future display/export handling. Only metadata is attached.
-          if (imageOrientation !== 0) {
+          // ImageCapture path: now physically rotate if requested so output matches UI
+          if (blob && imageOrientation !== 0) {
+            try {
+              const bmp = await createImageBitmap(blob);
+              const tmp = document.createElement("canvas");
+              tmp.width =
+                bmp.width ||
+                video?.videoWidth ||
+                (track.getSettings ? track.getSettings().width || 0 : 0);
+              tmp.height =
+                bmp.height ||
+                video?.videoHeight ||
+                (track.getSettings ? track.getSettings().height || 0 : 0);
+              const tctx = tmp.getContext("2d")!;
+              tctx.drawImage(bmp, 0, 0, tmp.width, tmp.height);
+              const oriented = applyOrientation(tmp, imageOrientation);
+              blob = await canvasToBlob(
+                oriented,
+                "image/jpeg",
+                effectiveQuality
+              );
+              (blob as any).orientationMeta = {
+                deviceOrientation: imageOrientation,
+                appliedRotation: imageOrientation,
+                deferred: false,
+              };
+            } catch {
+              (blob as any).orientationMeta = {
+                deviceOrientation: imageOrientation,
+                appliedRotation: 0,
+                deferred: false,
+              };
+            }
+          } else {
             (blob as any).orientationMeta = {
               deviceOrientation: imageOrientation,
               appliedRotation: 0,
-              deferred: true,
-            };
-          } else {
-            (blob as any).orientationMeta = {
-              deviceOrientation: 0,
-              appliedRotation: 0,
-              deferred: true,
+              deferred: false,
             };
           }
         }

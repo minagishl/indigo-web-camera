@@ -113,6 +113,7 @@ export const useAdvancedCapture = (
             try {
               const toned = await webgpuAccumulateHDR(video, framesToUse, {
                 maxFrames: framesToUse,
+                orientation: imageOrientation,
               });
               ctx.putImageData(toned, 0, 0);
               hdrApplied = true;
@@ -138,9 +139,10 @@ export const useAdvancedCapture = (
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       }
 
+      // WebGPU path already rotated inside pipeline; only rotate here if no HDR or HDR failed
       const appliedRotation = imageOrientation;
       let finalCanvas = canvas;
-      if (imageOrientation !== 0) {
+      if (imageOrientation !== 0 && !hdrApplied) {
         finalCanvas = applyOrientation(canvas, imageOrientation);
       }
 

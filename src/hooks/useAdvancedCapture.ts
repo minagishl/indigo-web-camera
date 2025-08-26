@@ -138,15 +138,10 @@ export const useAdvancedCapture = (
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       }
 
-      const deferOrientation = hdrApplied && imageOrientation !== 0;
-      let appliedRotation = 0;
-      let deferred = false;
+      const appliedRotation = imageOrientation;
       let finalCanvas = canvas;
-      if (imageOrientation !== 0 && !deferOrientation) {
+      if (imageOrientation !== 0) {
         finalCanvas = applyOrientation(canvas, imageOrientation);
-        appliedRotation = imageOrientation;
-      } else if (imageOrientation !== 0 && deferOrientation) {
-        deferred = true;
       }
 
       return new Promise<Blob>((resolve, reject) => {
@@ -156,7 +151,7 @@ export const useAdvancedCapture = (
             (blob as any).orientationMeta = {
               deviceOrientation: imageOrientation,
               appliedRotation,
-              deferred,
+              deferred: false,
             };
             (blob as any).hdrMeta = {
               enabled: hdrApplied,

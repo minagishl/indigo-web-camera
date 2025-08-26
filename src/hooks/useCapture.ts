@@ -129,7 +129,6 @@ export const useCapture = (
 
       try {
         let blob: Blob | null = null;
-        let usedImageCapture = false;
 
         // Prefer ImageCapture if available
         if ("ImageCapture" in window) {
@@ -154,7 +153,6 @@ export const useCapture = (
             }
 
             blob = await imageCapture.takePhoto(opts).catch(() => null);
-            if (blob) usedImageCapture = true;
           } catch {
             // Fallback below
           }

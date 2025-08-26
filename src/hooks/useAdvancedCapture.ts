@@ -118,7 +118,7 @@ export const useAdvancedCapture = (
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      // For Night mode, use buffered frames
+      // For Night mode, use buffered frames (Phase 2 HDR Method A baseline integration)
       if (settings.mode === "night") {
         const availableFrames = frameBufferRef.current.length;
 
@@ -129,15 +129,23 @@ export const useAdvancedCapture = (
         } else {
           // Use available frames (minimum 1, up to requested count)
           const framesToUse = Math.min(settings.frameCount, availableFrames);
+          const frames = frameBufferRef.current.slice(-framesToUse);
           console.log(
-            `Night mode: Using ${framesToUse} frames out of ${availableFrames} available`
+            `Night mode: Using ${framesToUse} frames out of ${availableFrames} available (enableHDR=${settings.enableHDR})`
           );
-          await mergeFrames(
-            ctx,
-            frameBufferRef.current.slice(-framesToUse),
-            canvas.width,
-            canvas.height
-          );
+          if (settings.enableHDR) {
+            // New HDR accumulate + tone map path (Method A baseline)
+            const toned = await accumulateAndToneMap(
+              frames,
+              canvas.width,
+              canvas.height,
+              { maxFrames: framesToUse }
+            );
+            ctx.putImageData(toned, 0, 0);
+          } else {
+            // Legacy simple averaging path
+            await mergeFrames(ctx, frames, canvas.width, canvas.height);
+          }
         }
       } else {
         // Standard single frame capture
@@ -308,6 +316,95 @@ export const useAdvancedCapture = (
     },
     []
   );
+
+  /**
+   * Phase 2 HDR Method A (Accumulate + Tone Map) minimal implementation.
+   * - Linearizes sRGB 8-bit to approximate linear space (gamma 2.2)
+   * - Averages up to maxFrames
+   * - Applies simple Reinhard tone mapping per channel: c' = c / (1 + c)
+   * - Re-encodes to sRGB 8-bit
+   * NOTE: This is intentionally conservative; optimization (variance rejection, motion masks)
+   * will be added in later phases.
+   */
+  const accumulateAndToneMap = async (
+    frames: ImageData[],
+    width: number,
+    height: number,
+    options?: { maxFrames?: number; tone?: "reinhard" | "filmic" }
+  ): Promise<ImageData> => {
+    const count =
+      options?.maxFrames && options.maxFrames > 0
+        ? Math.min(frames.length, options.maxFrames)
+        : frames.length;
+    if (!count) return frames[0];
+
+    // Lazy init LUTs (closure static)
+    let linearLUT = (accumulateAndToneMap as any)._linearLUT as
+      | Float32Array
+      | undefined;
+    let gammaLUT = (accumulateAndToneMap as any)._gammaLUT as
+      | Uint8ClampedArray
+      | undefined;
+    if (!linearLUT) {
+      linearLUT = new Float32Array(256);
+      gammaLUT = new Uint8ClampedArray(65536); // for 0..65535 scaling if needed (unused now but reserved)
+      for (let i = 0; i < 256; i++) {
+        linearLUT[i] = Math.pow(i / 255, 2.2);
+      }
+      // simple encode table for 0..255 linear domain after tone mapping (we will clamp to 0..1 then *255)
+      (accumulateAndToneMap as any)._linearLUT = linearLUT;
+      (accumulateAndToneMap as any)._gammaLUT = gammaLUT;
+    }
+
+    const pixels = width * height;
+    const accum = new Float32Array(pixels * 3);
+
+    // Accumulate linear
+    for (let f = 0; f < count; f++) {
+      const data = frames[f].data;
+      for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+        const r = linearLUT[data[i]];
+        const g = linearLUT[data[i + 1]];
+        const b = linearLUT[data[i + 2]];
+        const base = p * 3;
+        accum[base] += r;
+        accum[base + 1] += g;
+        accum[base + 2] += b;
+      }
+    }
+
+    // Average + tone map + gamma encode
+    const out = new Uint8ClampedArray(pixels * 4);
+    const tone = options?.tone || "reinhard";
+    for (let p = 0, o = 0; p < pixels; p++, o += 4) {
+      let r = accum[p * 3] / count;
+      let g = accum[p * 3 + 1] / count;
+      let b = accum[p * 3 + 2] / count;
+
+      if (tone === "reinhard") {
+        r = r / (1 + r);
+        g = g / (1 + g);
+        b = b / (1 + b);
+      } else {
+        // placeholder for future filmic curve
+        r = r / (1 + r);
+        g = g / (1 + g);
+        b = b / (1 + b);
+      }
+
+      // gamma encode
+      r = Math.pow(Math.max(0, Math.min(1, r)), 1 / 2.2);
+      g = Math.pow(Math.max(0, Math.min(1, g)), 1 / 2.2);
+      b = Math.pow(Math.max(0, Math.min(1, b)), 1 / 2.2);
+
+      out[o] = (r * 255) | 0;
+      out[o + 1] = (g * 255) | 0;
+      out[o + 2] = (b * 255) | 0;
+      out[o + 3] = 255;
+    }
+
+    return new ImageData(out, width, height);
+  };
 
   return {
     canvasRef,

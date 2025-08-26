@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "preact/hooks";
 import { type RefObject } from "preact/compat";
+import { decideJpegQuality } from "../utils/qualityPolicy"; // Phase 1 quality policy
 
 export const useCapture = (
   videoRef: RefObject<HTMLVideoElement>,
@@ -96,17 +97,45 @@ export const useCapture = (
   );
 
   const takePhoto = useCallback(
-    async (quality = 0.92, imageOrientation = 0): Promise<Blob | null> => {
+    // Phase 1: integrate quality policy & orientation defer for ImageCapture
+    async (quality?: number, imageOrientation = 0): Promise<Blob | null> => {
       if (!track) return null;
+
+      // Derive megapixels for policy (best-effort)
+      const video = videoRef.current;
+      const w =
+        video?.videoWidth ||
+        (track.getSettings ? track.getSettings().width : undefined);
+      const h =
+        video?.videoHeight ||
+        (track.getSettings ? track.getSettings().height : undefined);
+      const mp =
+        typeof w === "number" && typeof h === "number"
+          ? (w * h) / 1_000_000
+          : 2;
+
+      let effectiveQuality = typeof quality === "number" ? quality : 0.92;
+      if (typeof quality !== "number") {
+        try {
+          effectiveQuality = decideJpegQuality({
+            megapixels: mp,
+            mode: "photo", // Future: pass actual mode from settings
+            qualityHint: undefined,
+          });
+        } catch {
+          // fallback keeps 0.92
+        }
+      }
 
       try {
         let blob: Blob | null = null;
+        let usedImageCapture = false;
 
         // Prefer ImageCapture if available
         if ("ImageCapture" in window) {
           try {
             const imageCapture = new ImageCapture(track);
-            let opts = {};
+            let opts: any = {};
 
             if (imageCapture.getPhotoCapabilities) {
               const caps = await imageCapture
@@ -116,15 +145,16 @@ export const useCapture = (
                 opts = {
                   imageWidth: caps.imageWidth.max,
                   imageHeight: caps.imageHeight.max,
-                  // HDR settings to restore brightness and quality
-                  fillLightMode: "auto", // Enable automatic HDR
+                  // Phase 1: no HDR fusion; keep placeholders minimal
+                  fillLightMode: "auto",
                   redEyeReduction: true,
-                  imageQuality: 1.0, // Maximum quality
+                  imageQuality: 1.0,
                 };
               }
             }
 
             blob = await imageCapture.takePhoto(opts).catch(() => null);
+            if (blob) usedImageCapture = true;
           } catch {
             // Fallback below
           }
@@ -134,25 +164,45 @@ export const useCapture = (
           // Fallback: capture from video element
           const canvas = videoToCanvas();
 
-          // Apply orientation if needed
+          // For fallback path we keep pixel rotation (legacy behavior)
           if (imageOrientation !== 0) {
             const orientedCanvas = applyOrientation(canvas, imageOrientation);
-            blob = await canvasToBlob(orientedCanvas, "image/jpeg", quality);
+            blob = await canvasToBlob(
+              orientedCanvas,
+              "image/jpeg",
+              effectiveQuality
+            );
+            // Attach orientation metadata (rotation applied)
+            (blob as any).orientationMeta = {
+              deviceOrientation: imageOrientation,
+              appliedRotation: imageOrientation,
+              deferred: false,
+            };
           } else {
-            blob = await canvasToBlob(canvas, "image/jpeg", quality);
+            blob = await canvasToBlob(canvas, "image/jpeg", effectiveQuality);
+            (blob as any).orientationMeta = {
+              deviceOrientation: 0,
+              appliedRotation: 0,
+              deferred: false,
+            };
           }
-        } else if (imageOrientation !== 0 && blob) {
-          // Apply orientation to ImageCapture result
-          const img = new Image();
-
-          await new Promise((resolve) => {
-            img.src = URL.createObjectURL(blob!);
-            img.onload = resolve;
-          });
-
-          const orientedCanvas = applyOrientation(img, imageOrientation);
-          blob = await canvasToBlob(orientedCanvas, "image/jpeg", quality);
-          URL.revokeObjectURL(img.src);
+        } else {
+          // ImageCapture path: Phase 1 orientation recompression avoidance
+          // We DO NOT re-draw pixels for orientation here; we defer pixel rotation
+          // for future display/export handling. Only metadata is attached.
+          if (imageOrientation !== 0) {
+            (blob as any).orientationMeta = {
+              deviceOrientation: imageOrientation,
+              appliedRotation: 0,
+              deferred: true,
+            };
+          } else {
+            (blob as any).orientationMeta = {
+              deviceOrientation: 0,
+              appliedRotation: 0,
+              deferred: true,
+            };
+          }
         }
 
         return blob;

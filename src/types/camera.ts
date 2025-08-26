@@ -17,6 +17,14 @@ export interface CaptureSettings {
   manualControls: ManualControls;
   enableHDR: boolean;
   outputFormat: "jpeg" | "raw" | "both";
+  // Phase 1 extensions (orientation + quality + aspect negotiation)
+  targetAspectRatio?: number; // preferred aspect ratio (e.g., 16/9 = 1.777...)
+  qualityHint?: "speed" | "balanced" | "quality"; // capture pipeline preference
+  orientation?: {
+    deviceOrientation: number; // raw device orientation degrees
+    appliedRotation: number; // rotation actually applied to pixels (0 if deferred)
+    deferred: boolean; // true if pixel rotation deferred to display/export
+  };
 }
 
 export const DEFAULT_MANUAL_CONTROLS: ManualControls = {
